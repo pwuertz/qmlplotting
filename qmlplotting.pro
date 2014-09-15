@@ -4,20 +4,24 @@ QT += qml quick
 CONFIG += qt plugin c++11
 
 TARGET = $$qtLibraryTarget($$TARGET)
-uri = qao.qmlplotting
+uri = qmlplotting
 
 # Input
 SOURCES += \
     qmlplotting_plugin.cpp \
     colormappedimage.cpp \
     qsgfloattexture.cpp \
-    datacontainer.cpp
+    datacontainer.cpp \
+    lineplot.cpp \
+    dataclient.cpp
 
 HEADERS += \
     qmlplotting_plugin.h \
     colormappedimage.h \
     qsgfloattexture.h \
-    datacontainer.h
+    datacontainer.h \
+    lineplot.h \
+    dataclient.h
 
 OTHER_FILES = qmldir
 

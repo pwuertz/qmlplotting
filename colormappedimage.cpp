@@ -117,10 +117,8 @@ inline QSGMaterialShader* QSQColormapMaterial::createShader() const { return new
 
 
 ColormappedImage::ColormappedImage(QQuickItem *parent) :
-    QQuickItem(parent),
-    m_new_data(false), m_new_container(false),
-    m_min_value(0.), m_max_value(1.),
-    m_texture_cmap(nullptr), m_datacontainer(nullptr)
+    DataClient(parent),
+    m_min_value(0.), m_max_value(1.), m_texture_cmap(nullptr)
 {
     setFlag(QQuickItem::ItemHasContents);
 }
@@ -130,28 +128,6 @@ ColormappedImage::~ColormappedImage()
     if (m_texture_cmap) {
         m_texture_cmap->deleteLater();
     }
-}
-
-void ColormappedImage::setDataContainer(DataContainer *datacontainer)
-{
-    if (datacontainer != m_datacontainer) {
-        if (m_datacontainer) {
-            disconnect(m_datacontainer, SIGNAL(dataChanged()), this, SLOT(handleDataChanged()));
-        }
-        m_datacontainer = datacontainer;
-        if (datacontainer) {
-            connect(m_datacontainer, SIGNAL(dataChanged()), this, SLOT(handleDataChanged()));
-        }
-        m_new_container = true;
-        emit dataContainerChanged(datacontainer);
-        update();
-    }
-}
-
-void ColormappedImage::handleDataChanged()
-{
-    m_new_data = true;
-    update();
 }
 
 void ColormappedImage::setMinimumValue(double value)
@@ -190,6 +166,7 @@ QSGNode *ColormappedImage::updatePaintNode(QSGNode *node, QQuickItem::UpdatePain
         geometry->setDrawingMode(GL_TRIANGLE_STRIP);
         n->setGeometry(geometry);
         n->setFlag(QSGNode::OwnsGeometry);
+        m_new_geometry = true;
         // initialize material
         material = new QSQColormapMaterial;
         n->setMaterial(material);
@@ -217,14 +194,18 @@ QSGNode *ColormappedImage::updatePaintNode(QSGNode *node, QQuickItem::UpdatePain
 
     geometry = n->geometry();
     material = static_cast<QSQColormapMaterial*>(n->material());
+    QSGNode::DirtyState dirty_state = QSGNode::DirtyMaterial;
 
     // update geometry in case the width and height changed
-    double w = width();
-    double h = height();
-    geometry->vertexDataAsTexturedPoint2D()[0].set(0, 0, 0, 0);
-    geometry->vertexDataAsTexturedPoint2D()[1].set(0, h, 0, 1);
-    geometry->vertexDataAsTexturedPoint2D()[2].set(w, 0, 1, 0);
-    geometry->vertexDataAsTexturedPoint2D()[3].set(w, h, 1, 1);
+    if (m_new_geometry) {
+        double w = width();
+        double h = height();
+        geometry->vertexDataAsTexturedPoint2D()[0].set(0, 0, 0, 0);
+        geometry->vertexDataAsTexturedPoint2D()[1].set(0, h, 0, 1);
+        geometry->vertexDataAsTexturedPoint2D()[2].set(w, 0, 1, 0);
+        geometry->vertexDataAsTexturedPoint2D()[3].set(w, h, 1, 1);
+        dirty_state |= QSGNode::DirtyGeometry;
+    }
 
     // update material parameters
     material->m_amplitude = 1. / (m_max_value - m_min_value);
@@ -234,15 +215,14 @@ QSGNode *ColormappedImage::updatePaintNode(QSGNode *node, QQuickItem::UpdatePain
     if (m_new_container) {
         material->m_texture_image = m_datacontainer->textureProvider()->texture();
         m_new_container = false;
-        n->markDirty(QSGNode::DirtyGeometry | QSGNode::DirtyMaterial);
     }
 
     // check if the image texture should be updated
     if (m_new_data) {
         static_cast<DataTexture*>(material->m_texture_image)->updateTexture();
         m_new_data = false;
-        n->markDirty(QSGNode::DirtyGeometry | QSGNode::DirtyMaterial);
     }
 
+    n->markDirty(dirty_state);
     return n;
 }
