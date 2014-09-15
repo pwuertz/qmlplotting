@@ -24,16 +24,17 @@ public:
     virtual bool isTextureProvider() const;
     virtual QSGTextureProvider* textureProvider();
 
+    Q_INVOKABLE bool setDataFloat32(void* data, int width, int height);
+
 signals:
     void dataChanged();
 
-public slots:
-    bool setDataFloat32(void* data, int width, int height);
-
-protected:
+public:
     float* m_data;
     int m_width;
     int m_height;
+
+private:
     bool m_new_data;
     DataTextureProvider* m_provider;
     friend class DataTexture;

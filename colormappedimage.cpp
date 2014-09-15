@@ -115,6 +115,8 @@ private:
 
 inline QSGMaterialShader* QSQColormapMaterial::createShader() const { return new QSQColormapShader; }
 
+// ----------------------------------------------------------------------------
+
 
 ColormappedImage::ColormappedImage(QQuickItem *parent) :
     DataClient(parent),
@@ -205,6 +207,7 @@ QSGNode *ColormappedImage::updatePaintNode(QSGNode *node, QQuickItem::UpdatePain
         geometry->vertexDataAsTexturedPoint2D()[2].set(w, 0, 1, 0);
         geometry->vertexDataAsTexturedPoint2D()[3].set(w, h, 1, 1);
         dirty_state |= QSGNode::DirtyGeometry;
+        m_new_geometry = false;
     }
 
     // update material parameters

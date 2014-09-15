@@ -22,7 +22,6 @@ public:
 signals:
     void minimumValueChanged(double value);
     void maximumValueChanged(double value);
-    void dataContainerChanged(DataContainer* datacontainer);
 
 protected:
     virtual QSGNode* updatePaintNode(QSGNode *, UpdatePaintNodeData *);

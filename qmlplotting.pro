@@ -12,16 +12,16 @@ SOURCES += \
     colormappedimage.cpp \
     qsgfloattexture.cpp \
     datacontainer.cpp \
-    lineplot.cpp \
-    dataclient.cpp
+    dataclient.cpp \
+    sliceplot.cpp
 
 HEADERS += \
     qmlplotting_plugin.h \
     colormappedimage.h \
     qsgfloattexture.h \
     datacontainer.h \
-    lineplot.h \
-    dataclient.h
+    dataclient.h \
+    sliceplot.h
 
 OTHER_FILES = qmldir
 
