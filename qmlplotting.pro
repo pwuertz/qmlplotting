@@ -8,20 +8,20 @@ uri = qmlplotting
 
 # Input
 SOURCES += \
-    qmlplotting_plugin.cpp \
-    colormappedimage.cpp \
-    qsgfloattexture.cpp \
-    datacontainer.cpp \
-    dataclient.cpp \
-    sliceplot.cpp
+    src/qmlplotting_plugin.cpp \
+    src/colormappedimage.cpp \
+    src/qsgfloattexture.cpp \
+    src/datacontainer.cpp \
+    src/dataclient.cpp \
+    src/sliceplot.cpp
 
 HEADERS += \
-    qmlplotting_plugin.h \
-    colormappedimage.h \
-    qsgfloattexture.h \
-    datacontainer.h \
-    dataclient.h \
-    sliceplot.h
+    src/qmlplotting_plugin.h \
+    src/colormappedimage.h \
+    src/qsgfloattexture.h \
+    src/datacontainer.h \
+    src/dataclient.h \
+    src/sliceplot.h
 
 OTHER_FILES = qmldir
 
