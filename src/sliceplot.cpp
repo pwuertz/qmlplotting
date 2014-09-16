@@ -14,6 +14,7 @@ public:
     double m_offset;
     QPointF m_p1;
     QPointF m_p2;
+    QColor m_color;
 };
 
 class SlicePlotShader : public QSGMaterialShader
@@ -41,8 +42,8 @@ public:
         return
         "uniform sampler2D data;                       \n"
         "uniform lowp float opacity;                   \n"
+        "uniform mediump vec4 color;                   \n"
         "void main() {                                 \n"
-        "    vec4 color = vec4(1., 0., 0., 1.);        \n"
         "    gl_FragColor = color * opacity;           \n"
         "}";
     }
@@ -58,6 +59,7 @@ public:
         QSGMaterialShader::initialize();
         m_id_matrix = program()->uniformLocation("matrix");
         m_id_opacity = program()->uniformLocation("opacity");
+        m_id_color = program()->uniformLocation("color");
         m_id_data = program()->uniformLocation("image");
         m_id_amplitude = program()->uniformLocation("amplitude");
         m_id_offset = program()->uniformLocation("offset");
@@ -83,6 +85,7 @@ public:
         program()->setUniformValue(m_id_offset, float(material->m_offset));
         program()->setUniformValue(m_id_p1, material->m_p1);
         program()->setUniformValue(m_id_p2, material->m_p2);
+        program()->setUniformValue(m_id_color, material->m_color);
 
         // bind the material data texture
         program()->setUniformValue(m_id_data, 0);
@@ -95,6 +98,7 @@ public:
 private:
     int m_id_matrix;
     int m_id_opacity;
+    int m_id_color;
     int m_id_data;
     int m_id_amplitude;
     int m_id_offset;
@@ -111,7 +115,8 @@ inline QSGMaterialShader* SlicePlotMaterial::createShader() const { return new S
 SlicePlot::SlicePlot(QQuickItem *parent) :
     DataClient(parent),
     m_min_value(0.), m_max_value(1.), m_num_segments(20),
-    m_p1(0., 0.), m_p2(1., 1.)
+    m_p1(0., 0.), m_p2(1., 1.),
+    m_color(Qt::red)
 {
     setFlag(QQuickItem::ItemHasContents);
     setClip(true);
@@ -160,6 +165,14 @@ void SlicePlot::setP2(const QPointF &p)
     if (m_p2 == p) return;
     m_p2 = p;
     emit p2Changed(m_p2);
+    update();
+}
+
+void SlicePlot::setColor(const QColor &color)
+{
+    if (m_color == color) return;
+    m_color = color;
+    emit colorChanged(m_color);
     update();
 }
 
@@ -212,6 +225,7 @@ QSGNode *SlicePlot::updatePaintNode(QSGNode *node, QQuickItem::UpdatePaintNodeDa
     material->m_offset = off_val - 1./scale_val;
     material->m_p1 = m_p1;
     material->m_p2 = m_p2;
+    material->m_color = m_color;
 
     // update geometry in case the width and height changed
     if (m_new_geometry || m_new_data || m_new_container) {
