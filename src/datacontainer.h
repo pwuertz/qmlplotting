@@ -3,7 +3,7 @@
 
 #include <QQuickItem>
 #include <QSGTextureProvider>
-#include "qsgfloattexture.h"
+#include <QSGDynamicTexture>
 
 class DataTexture;
 class DataTextureProvider;
@@ -38,18 +38,6 @@ private:
     bool m_new_data;
     DataTextureProvider* m_provider;
     friend class DataTexture;
-};
-
-class DataTexture : public QSGFloatTexture
-{
-    Q_OBJECT
-
-public:
-    DataTexture(DataContainer* datacontainer);
-    virtual ~DataTexture() {}
-
-    bool updateTexture();
-    DataContainer* m_datacontainer;
 };
 
 class DataTextureProvider : public QSGTextureProvider

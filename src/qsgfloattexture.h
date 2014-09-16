@@ -1,9 +1,9 @@
 #ifndef QSGFLOATTEXTURE_H
 #define QSGFLOATTEXTURE_H
 
-#include <QSGTexture>
+#include <QSGDynamicTexture>
 
-class QSGFloatTexture : public QSGTexture
+class QSGFloatTexture : public QSGDynamicTexture
 {
 public:
     QSGFloatTexture();
@@ -14,12 +14,16 @@ public:
     virtual bool hasAlphaChannel() const;
     virtual bool hasMipmaps() const;
     virtual void bind();
-    void updateTextureData(float* data, int w, int h, int num_components);
+    virtual bool updateTexture();
+
+    void setDataSource(float* data, int w, int h, int num_components);
 
 private:
     unsigned int m_id_texture;
-    unsigned int m_width;
-    unsigned int m_height;
+    float* m_data;
+    int m_width;
+    int m_height;
+    int m_num_components;
 };
 
 #endif // QSGFLOATTEXTURE_H

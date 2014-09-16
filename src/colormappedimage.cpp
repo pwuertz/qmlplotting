@@ -181,7 +181,8 @@ QSGNode *ColormappedImage::updatePaintNode(QSGNode *node, QQuickItem::UpdatePain
         };
         if (!m_texture_cmap) {
             m_texture_cmap = new QSGFloatTexture();
-            m_texture_cmap->updateTextureData(data_cmap, 3, 1, 3);
+            m_texture_cmap->setDataSource(data_cmap, 3, 1, 3);
+            m_texture_cmap->updateTexture();
         }
         material->m_texture_cmap = m_texture_cmap;
         material->m_texture_image = m_datacontainer->textureProvider()->texture();
@@ -222,7 +223,7 @@ QSGNode *ColormappedImage::updatePaintNode(QSGNode *node, QQuickItem::UpdatePain
 
     // check if the image texture should be updated
     if (m_new_data) {
-        static_cast<DataTexture*>(material->m_texture_image)->updateTexture();
+        static_cast<QSGDynamicTexture*>(material->m_texture_image)->updateTexture();
         m_new_data = false;
     }
 

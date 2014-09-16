@@ -234,7 +234,7 @@ QSGNode *SlicePlot::updatePaintNode(QSGNode *node, QQuickItem::UpdatePaintNodeDa
 
     // check if the image texture should be updated
     if (m_new_data) {
-        static_cast<DataTexture*>(material->m_texture_data)->updateTexture();
+        static_cast<QSGDynamicTexture*>(material->m_texture_data)->updateTexture();
         m_new_data = false;
     }
 

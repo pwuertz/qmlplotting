@@ -1,6 +1,28 @@
 #include <QThread>
 #include <QOpenGLContext>
 #include "datacontainer.h"
+#include "qsgfloattexture.h"
+
+class DataTexture : public QSGFloatTexture
+{
+public:
+    DataTexture(DataContainer* datacontainer) : QSGFloatTexture(), m_datacontainer(datacontainer) {}
+    virtual ~DataTexture() {}
+
+    virtual bool updateTexture() {
+        if (m_datacontainer->m_new_data) {
+            setDataSource(m_datacontainer->m_data,
+                          m_datacontainer->m_width,
+                          m_datacontainer->m_height,
+                          1);
+            return QSGFloatTexture::updateTexture();
+        } else  {
+            return false;
+        }
+    }
+    DataContainer* m_datacontainer;
+};
+
 
 DataContainer::DataContainer(QQuickItem *parent) :
     QQuickItem(parent), m_data(nullptr), m_width(0), m_height(0), m_new_data(false),
@@ -41,26 +63,6 @@ QSGTextureProvider *DataContainer::textureProvider()
         m_provider->m_datatexture->updateTexture();
     }
     return m_provider;
-}
-
-
-DataTexture::DataTexture(DataContainer* datacontainer) :
-    QSGFloatTexture(), m_datacontainer(datacontainer)
-{
-
-}
-
-bool DataTexture::updateTexture()
-{
-    if (m_datacontainer->m_new_data) {
-        updateTextureData(m_datacontainer->m_data,
-                          m_datacontainer->m_width,
-                          m_datacontainer->m_height,
-                          1);
-        return true;
-    } else  {
-        return false;
-    }
 }
 
 DataTextureProvider::DataTextureProvider(DataContainer *datacontainer) :
