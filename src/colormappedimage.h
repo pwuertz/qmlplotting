@@ -2,7 +2,6 @@
 #define COLORMAPPEDIMAGE_H
 
 #include "dataclient.h"
-#include "qsgfloattexture.h"
 
 class ColormappedImage : public DataClient
 {
@@ -29,7 +28,7 @@ protected:
 private:
     double m_min_value;
     double m_max_value;
-    QSGFloatTexture* m_texture_cmap;
+    QSGTexture* m_texture_cmap;
 };
 
 

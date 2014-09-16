@@ -7,8 +7,6 @@
 #include <QOpenGLContext>
 #include "qsgfloattexture.h"
 
-#include "math.h"
-
 class QSQColormapMaterial : public QSGMaterial
 {
 public:
@@ -169,23 +167,24 @@ QSGNode *ColormappedImage::updatePaintNode(QSGNode *node, QQuickItem::UpdatePain
         n->setGeometry(geometry);
         n->setFlag(QSGNode::OwnsGeometry);
         m_new_geometry = true;
+        // initialize colormap
+        if (!m_texture_cmap) {
+            GLfloat data_cmap[] = {
+                .35, .35, .95,
+                .95, .95, .95,
+                .95, .35, .35
+            };
+            QSGFloatTexture* t = new QSGFloatTexture();
+            t->setDataSource(data_cmap, 3, 1, 3);
+            t->updateTexture();
+            m_texture_cmap = t;
+        }
         // initialize material
         material = new QSQColormapMaterial;
-        n->setMaterial(material);
-        n->setFlag(QSGNode::OwnsMaterial);
-        // initialize colormap
-        GLfloat data_cmap[] = {
-            .35, .35, .95,
-            .95, .95, .95,
-            .95, .35, .35
-        };
-        if (!m_texture_cmap) {
-            m_texture_cmap = new QSGFloatTexture();
-            m_texture_cmap->setDataSource(data_cmap, 3, 1, 3);
-            m_texture_cmap->updateTexture();
-        }
         material->m_texture_cmap = m_texture_cmap;
         material->m_texture_image = m_datacontainer->textureProvider()->texture();
+        n->setMaterial(material);
+        n->setFlag(QSGNode::OwnsMaterial);
     }
 
     if (!n) {

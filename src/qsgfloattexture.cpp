@@ -1,4 +1,5 @@
 #include "qsgfloattexture.h"
+
 #include <QOpenGLContext>
 
 QSGFloatTexture::QSGFloatTexture() :
