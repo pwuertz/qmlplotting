@@ -4,6 +4,7 @@
 #include <QQuickItem>
 #include <QSGTextureProvider>
 #include <QSGDynamicTexture>
+#include <QByteArray>
 
 class DataTexture;
 class DataTextureProvider;
@@ -25,6 +26,7 @@ public:
     virtual QSGTextureProvider* textureProvider();
 
     Q_INVOKABLE bool setDataFloat32(void* data, int width, int height);
+    Q_INVOKABLE bool setTestData();
 
 signals:
     void dataChanged();
@@ -37,6 +39,7 @@ public:
 private:
     bool m_new_data;
     DataTextureProvider* m_provider;
+    QByteArray m_test_data_buffer;
     friend class DataTexture;
 };
 
