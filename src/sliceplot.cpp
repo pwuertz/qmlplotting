@@ -10,6 +10,8 @@ public:
     QSGMaterialType *type() const { static QSGMaterialType type; return &type; }
     QSGMaterialShader *createShader() const;
     QSGTexture* m_texture_data;
+    double m_width;
+    double m_height;
     double m_amplitude;
     double m_offset;
     QPointF m_p1;
@@ -24,6 +26,8 @@ public:
         return
         "uniform sampler2D data;                                   \n"
         "attribute highp vec2 vertex;                              \n"
+        "uniform highp float width;                                \n"
+        "uniform highp float height;                               \n"
         "uniform highp float amplitude;                            \n"
         "uniform highp float offset;                               \n"
         "uniform highp vec2 p1;                                    \n"
@@ -31,10 +35,10 @@ public:
         "uniform highp mat4 matrix;                                \n"
         "                                                          \n"
         "void main() {                                             \n"
-        "    highp vec2 pos = (1.-vertex.y)*p1 + vertex.y*p2;      \n"
+        "    highp vec2 pos = (1.-vertex.x)*p1 + vertex.x*p2;      \n"
         "    highp float val = texture2D(data, pos).r;             \n"
         "    highp float yval = amplitude * (val+offset);          \n"
-        "    gl_Position = matrix * vec4(vertex.x, yval, 0., 1.);  \n"
+        "    gl_Position = matrix * vec4(width * vertex.x, height * yval, 0., 1.);  \n"
         "}";
     }
 
@@ -61,6 +65,8 @@ public:
         m_id_opacity = program()->uniformLocation("opacity");
         m_id_color = program()->uniformLocation("color");
         m_id_data = program()->uniformLocation("image");
+        m_id_width = program()->uniformLocation("width");
+        m_id_height = program()->uniformLocation("height");
         m_id_amplitude = program()->uniformLocation("amplitude");
         m_id_offset = program()->uniformLocation("offset");
         m_id_p1 = program()->uniformLocation("p1");
@@ -81,6 +87,8 @@ public:
             program()->setUniformValue(m_id_opacity, state.opacity());
 
         // bind material parameters
+        program()->setUniformValue(m_id_width, float(material->m_width));
+        program()->setUniformValue(m_id_height, float(material->m_height));
         program()->setUniformValue(m_id_amplitude, float(material->m_amplitude));
         program()->setUniformValue(m_id_offset, float(material->m_offset));
         program()->setUniformValue(m_id_p1, material->m_p1);
@@ -99,6 +107,8 @@ private:
     int m_id_matrix;
     int m_id_opacity;
     int m_id_color;
+    int m_id_width;
+    int m_id_height;
     int m_id_data;
     int m_id_amplitude;
     int m_id_offset;
@@ -192,12 +202,11 @@ QSGNode *SlicePlot::updatePaintNode(QSGNode *node, QQuickItem::UpdatePaintNodeDa
         // create a node if there is a data source
         n = new QSGGeometryNode();
         // inintialize geometry
-        geometry = new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), m_num_segments+1);
+        geometry = new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), 0);
         geometry->setDrawingMode(GL_LINE_STRIP);
         geometry->setLineWidth(1.);
         n->setGeometry(geometry);
         n->setFlag(QSGNode::OwnsGeometry);
-        m_new_geometry = true;
         // initialize material
         material = new SlicePlotMaterial;
         material->m_texture_data = m_datacontainer->textureProvider()->texture();
@@ -215,29 +224,27 @@ QSGNode *SlicePlot::updatePaintNode(QSGNode *node, QQuickItem::UpdatePaintNodeDa
     geometry = n->geometry();
     material = static_cast<SlicePlotMaterial*>(n->material());
     QSGNode::DirtyState dirty_state = QSGNode::DirtyMaterial;
-    double w = width();
-    double h = height();
 
     // update material parameters
     double scale_val = 1. / (m_max_value - m_min_value);
     double off_val = -m_min_value;
-    material->m_amplitude = - h * scale_val;
+    material->m_width = width();
+    material->m_height = height();
+    material->m_amplitude = - scale_val;
     material->m_offset = off_val - 1./scale_val;
     material->m_p1 = m_p1;
     material->m_p2 = m_p2;
     material->m_color = m_color;
 
-    // update geometry in case the width and height changed
-    if (m_new_geometry || m_new_data || m_new_container) {
+    // update geometry if the number of segments changed
+    if (geometry->vertexCount() != (m_num_segments+1)) {
         geometry->allocate(m_num_segments+1);
         float* data = static_cast<float*>(geometry->vertexData());
         for (int i = 0; i <= m_num_segments; ++i) {
             double f = i * (1./m_num_segments);
-            data[2*i + 0] = f*w;
-            data[2*i + 1] = f;
+            data[2*i] = f;
         }
         dirty_state |= QSGNode::DirtyGeometry;
-        m_new_geometry = false;
     }
 
     // check for data source change
