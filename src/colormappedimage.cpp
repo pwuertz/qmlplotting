@@ -117,10 +117,11 @@ public:
         "varying highp vec2 coord;                               \n"
         "uniform lowp float opacity;                             \n"
         "void main() {                                           \n"
+        "    bool ok = coord.s > 0. && coord.s < 1. && coord.t > 0. && coord.t < 1.; \n"
         "    highp float val = texture2D(image, coord.st).r;     \n"
         "    val = amplitude * (val + offset);                   \n"
         "    vec4 color = texture2D(cmap, vec2(val, 1.));        \n"
-        "    gl_FragColor = color * opacity;                     \n"
+        "    gl_FragColor = color * opacity * float(ok);         \n"
         "}";
     }
 
@@ -172,9 +173,9 @@ public:
         // unbind all textures
         QOpenGLFunctions* functions = QOpenGLContext::currentContext()->functions();
         functions->glActiveTexture(GL_TEXTURE1);
-        functions->glBindTexture(GL_TEXTURE_2D, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
         functions->glActiveTexture(GL_TEXTURE0);
-        functions->glBindTexture(GL_TEXTURE_2D, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
 private:
