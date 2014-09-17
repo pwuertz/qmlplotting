@@ -3,11 +3,20 @@ import QtQuick.Controls 1.1
 import qmlplotting 1.0
 
 Rectangle {
-    width: 512; height: 512
+    width: 640; height: 512
 
     DataContainer {
         id: container
         Component.onCompleted: container.setTestData()
+    }
+
+    Menu {
+        id: colormenu
+        MenuItem {text: "Wjet"; onTriggered: image.colormap = text.toLowerCase();}
+        MenuItem {text: "Jet"; onTriggered: image.colormap = text.toLowerCase();}
+        MenuItem {text: "Hot"; onTriggered: image.colormap = text.toLowerCase();}
+        MenuItem {text: "Bwr"; onTriggered: image.colormap = text.toLowerCase();}
+        MenuItem {text: "Gray"; onTriggered: image.colormap = text.toLowerCase();}
     }
 
     ColormappedImage {
@@ -16,6 +25,7 @@ Rectangle {
         dataContainer: container
         minimumValue: min_slider.value
         maximumValue: max_slider.value
+        colormap: "bwr"
 
         Rectangle {
             id: scanline
@@ -70,11 +80,18 @@ Rectangle {
         x: 3; y: 3
         spacing: 3
 
+        Button {
+            text: "  Colormap: " + image.colormap + "  "
+            //onClicked: colormenu.popup()
+            menu: colormenu
+        }
+
         ColormappedImage {
             width: 100; height: 100
             dataContainer: container
             minimumValue: .5
             maximumValue: 1.
+            colormap: image.colormap
             opacity: .75
             MouseArea {
                 anchors.fill: parent
@@ -96,6 +113,7 @@ Rectangle {
             dataContainer: container
             minimumValue: 0.
             maximumValue: .5
+            colormap: image.colormap
             opacity: .75
             MouseArea {
                 anchors.fill: parent
@@ -145,14 +163,14 @@ Rectangle {
                 Slider {
                     id: min_slider
                     width: 256
-                    value: 0.
+                    value: -.1
                     minimumValue: -.5
                     maximumValue: 1.5
                 }
                 Slider {
                     id: max_slider
                     width: 256
-                    value: 1.
+                    value: 1.1
                     minimumValue: -.5
                     maximumValue: 1.5
                 }

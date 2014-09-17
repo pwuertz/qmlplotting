@@ -5,7 +5,80 @@
 #include <QSGMaterialShader>
 #include <QSGTexture>
 #include <QOpenGLContext>
+#include <QStringList>
 #include "qsgfloattexture.h"
+
+// ----------------------------------------------------------------------------
+
+static GLfloat cmap_wjet[] = {
+    1.000000, 1.000000, 1.000000,
+    0.200000, 0.300000, 1.000000,
+    0.000000, 0.500000, 1.000000,
+    0.000000, 1.000000, 1.000000,
+    0.500000, 1.000000, 0.000000,
+    1.000000, 1.000000, 0.000000,
+    1.000000, 0.300000, 0.000000,
+    1.000000, 0.000000, 0.000000
+};
+
+static GLfloat cmap_jet[] = {
+    0.000000, 0.000000, 0.500000,
+    0.000000, 0.000000, 1.000000,
+    0.000000, 1.000000, 1.000000,
+    0.500000, 1.000000, 0.300000,
+    1.000000, 1.000000, 0.000000,
+    1.000000, 0.000000, 0.000000
+};
+
+static GLfloat cmap_hot[] = {
+    0.000000, 0.000000, 0.000000,
+    0.800000, 0.000000, 0.000000,
+    1.000000, 0.900000, 0.000000,
+    1.000000, 1.000000, 1.000000
+};
+
+static GLfloat cmap_bwr[] = {
+    0.229806, 0.298718, 0.753683,
+    0.266234, 0.353095, 0.801467,
+    0.303869, 0.406535, 0.844959,
+    0.342804, 0.458758, 0.883726,
+    0.383013, 0.509419, 0.917388,
+    0.424370, 0.558148, 0.945620,
+    0.466667, 0.604563, 0.968155,
+    0.509635, 0.648281, 0.984788,
+    0.552953, 0.688929, 0.995376,
+    0.596262, 0.726149, 0.999836,
+    0.639176, 0.759600, 0.998151,
+    0.681291, 0.788965, 0.990363,
+    0.722193, 0.813953, 0.976575,
+    0.761465, 0.834303, 0.956945,
+    0.798692, 0.849786, 0.931689,
+    0.833467, 0.860208, 0.901069,
+    0.865395, 0.865410, 0.865396,
+    0.897787, 0.848937, 0.820881,
+    0.924128, 0.827385, 0.774508,
+    0.944469, 0.800927, 0.726736,
+    0.958853, 0.769768, 0.678008,
+    0.967328, 0.734133, 0.628752,
+    0.969954, 0.694267, 0.579375,
+    0.966811, 0.650421, 0.530264,
+    0.958003, 0.602842, 0.481776,
+    0.943661, 0.551751, 0.434244,
+    0.923945, 0.497309, 0.387970,
+    0.899046, 0.439559, 0.343230,
+    0.869187, 0.378313, 0.300267,
+    0.834621, 0.312874, 0.259301,
+    0.795632, 0.241284, 0.220526,
+    0.752535, 0.157246, 0.184115,
+    0.705673, 0.015556, 0.150233
+};
+
+static GLfloat cmap_gray[] = {
+    0., 0., 0.,
+    1., 1., 1.,
+};
+
+// ----------------------------------------------------------------------------
 
 class QSQColormapMaterial : public QSGMaterial
 {
@@ -118,7 +191,8 @@ inline QSGMaterialShader* QSQColormapMaterial::createShader() const { return new
 
 ColormappedImage::ColormappedImage(QQuickItem *parent) :
     DataClient(parent),
-    m_min_value(0.), m_max_value(1.), m_texture_cmap(nullptr)
+    m_min_value(0.), m_max_value(1.),
+    m_new_colormap(false), m_texture_cmap(nullptr)
 {
     setFlag(QQuickItem::ItemHasContents);
 }
@@ -146,6 +220,39 @@ void ColormappedImage::setMaximumValue(double value)
     update();
 }
 
+void ColormappedImage::setColormap(const QString &colormap)
+{
+    if (colormap == m_colormap) return;
+    m_colormap = colormap;
+    m_new_colormap = true;
+    emit colormapChanged(m_colormap);
+    update();
+}
+
+static void updateColormapTexture(QSGFloatTexture* t, const QString& colormap) {
+    // default colormap
+    GLfloat* data = cmap_gray;
+    int numpoints = sizeof(cmap_gray) / (3*sizeof(GLfloat));
+
+    // check colormap strings, TODO: build a map for lookup?
+    if (colormap == "wjet") {
+        data = cmap_wjet;
+        numpoints = sizeof(cmap_wjet) / (3*sizeof(GLfloat));
+    } else if (colormap == "jet") {
+        data = cmap_jet;
+        numpoints = sizeof(cmap_jet) / (3*sizeof(GLfloat));
+    } else if (colormap == "hot") {
+        data = cmap_hot;
+        numpoints = sizeof(cmap_hot) / (3*sizeof(GLfloat));
+    } else if (colormap == "bwr") {
+        data = cmap_bwr;
+        numpoints = sizeof(cmap_bwr) / (3*sizeof(GLfloat));
+    }
+
+    t->setDataSource(data, numpoints, 1, 3);
+    t->updateTexture();
+}
+
 QSGNode *ColormappedImage::updatePaintNode(QSGNode *node, QQuickItem::UpdatePaintNodeData *)
 {
     QSGGeometryNode* n = static_cast<QSGGeometryNode*>(node);
@@ -169,15 +276,8 @@ QSGNode *ColormappedImage::updatePaintNode(QSGNode *node, QQuickItem::UpdatePain
         m_new_geometry = true;
         // initialize colormap
         if (!m_texture_cmap) {
-            GLfloat data_cmap[] = {
-                .35, .35, .95,
-                .95, .95, .95,
-                .95, .35, .35
-            };
-            QSGFloatTexture* t = new QSGFloatTexture();
-            t->setDataSource(data_cmap, 3, 1, 3);
-            t->updateTexture();
-            m_texture_cmap = t;
+            m_texture_cmap = new QSGFloatTexture();
+            m_new_colormap = true;
         }
         // initialize material
         material = new QSQColormapMaterial;
@@ -224,6 +324,13 @@ QSGNode *ColormappedImage::updatePaintNode(QSGNode *node, QQuickItem::UpdatePain
     if (m_new_data) {
         static_cast<QSGDynamicTexture*>(material->m_texture_image)->updateTexture();
         m_new_data = false;
+    }
+
+    // check if the cmap texture should be updated
+    if (m_new_colormap) {
+        QSGFloatTexture* t = static_cast<QSGFloatTexture*>(material->m_texture_cmap);
+        updateColormapTexture(t, m_colormap);
+        m_new_colormap = false;
     }
 
     n->markDirty(dirty_state);
