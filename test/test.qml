@@ -2,7 +2,8 @@ import QtQuick 2.0
 import QtQuick.Controls 1.1
 import qmlplotting 1.0
 
-Rectangle {
+ApplicationWindow {
+    title: "QML Plotting Example"
     width: 640; height: 512
 
     DataContainer {
@@ -19,7 +20,7 @@ Rectangle {
         MenuItem {text: "Gray"; onTriggered: image.colormap = text.toLowerCase();}
     }
 
-    ColormappedImage {
+    ZoomPanImage {
         id: image
         anchors.fill: parent
         dataContainer: container
