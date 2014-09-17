@@ -5,6 +5,7 @@
 #include <QSGMaterialShader>
 #include <QSGTexture>
 #include <QOpenGLContext>
+#include <QOpenGLFunctions>
 #include <QStringList>
 #include "qsgfloattexture.h"
 
@@ -147,6 +148,7 @@ public:
     {
         Q_ASSERT(program()->isLinked());
         QSQColormapMaterial* material = static_cast<QSQColormapMaterial*>(newMaterial);
+        QOpenGLFunctions* functions = state.context()->functions();
 
         if (state.isMatrixDirty())
             program()->setUniformValue(m_id_matrix, state.combinedMatrix());
@@ -158,20 +160,21 @@ public:
         program()->setUniformValue(m_id_offset, float(material->m_offset));
 
         // bind the material textures (image and colormap)
-        glActiveTexture(GL_TEXTURE1);
+        functions->glActiveTexture(GL_TEXTURE1);
         program()->setUniformValue(m_id_cmap, 1);
         material->m_texture_cmap->bind();
-        glActiveTexture(GL_TEXTURE0);
+        functions->glActiveTexture(GL_TEXTURE0);
         program()->setUniformValue(m_id_image, 0);
         material->m_texture_image->bind();
     }
 
     void deactivate() {
         // unbind all textures
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        QOpenGLFunctions* functions = QOpenGLContext::currentContext()->functions();
+        functions->glActiveTexture(GL_TEXTURE1);
+        functions->glBindTexture(GL_TEXTURE_2D, 0);
+        functions->glActiveTexture(GL_TEXTURE0);
+        functions->glBindTexture(GL_TEXTURE_2D, 0);
     }
 
 private:
@@ -192,6 +195,7 @@ inline QSGMaterialShader* QSQColormapMaterial::createShader() const { return new
 ColormappedImage::ColormappedImage(QQuickItem *parent) :
     DataClient(parent),
     m_min_value(0.), m_max_value(1.),
+    m_view_rect(0, 0, 1, 1),
     m_new_colormap(false), m_texture_cmap(nullptr)
 {
     setFlag(QQuickItem::ItemHasContents);
@@ -217,6 +221,15 @@ void ColormappedImage::setMaximumValue(double value)
     if (value == m_max_value) return;
     m_max_value = value;
     emit maximumValueChanged(value);
+    update();
+}
+
+void ColormappedImage::setViewRect(const QRectF &viewrect)
+{
+    if (viewrect == m_view_rect) return;
+    m_view_rect = viewrect;
+    m_new_geometry = true;
+    emit viewRectChanged(m_view_rect);
     update();
 }
 
@@ -298,14 +311,18 @@ QSGNode *ColormappedImage::updatePaintNode(QSGNode *node, QQuickItem::UpdatePain
     material = static_cast<QSQColormapMaterial*>(n->material());
     QSGNode::DirtyState dirty_state = QSGNode::DirtyMaterial;
 
-    // update geometry in case the width and height changed
+    // update geometry in case width and height or view rect changed
     if (m_new_geometry) {
         double w = width();
         double h = height();
-        geometry->vertexDataAsTexturedPoint2D()[0].set(0, 0, 0, 0);
-        geometry->vertexDataAsTexturedPoint2D()[1].set(0, h, 0, 1);
-        geometry->vertexDataAsTexturedPoint2D()[2].set(w, 0, 1, 0);
-        geometry->vertexDataAsTexturedPoint2D()[3].set(w, h, 1, 1);
+        double x1 = m_view_rect.x();
+        double x2 = x1 + m_view_rect.width();
+        double y1 = m_view_rect.y();
+        double y2 = y1 + m_view_rect.height();
+        geometry->vertexDataAsTexturedPoint2D()[0].set(0, 0, x1, y1);
+        geometry->vertexDataAsTexturedPoint2D()[1].set(0, h, x1, y2);
+        geometry->vertexDataAsTexturedPoint2D()[2].set(w, 0, x2, y1);
+        geometry->vertexDataAsTexturedPoint2D()[3].set(w, h, x2, y2);
         dirty_state |= QSGNode::DirtyGeometry;
         m_new_geometry = false;
     }
