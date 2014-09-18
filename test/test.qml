@@ -28,6 +28,8 @@ ApplicationWindow {
         maximumValue: max_slider.value
         colormap: "bwr"
 
+        SelectionBox {}
+
         Rectangle {
             id: scanline
             property point p1: Qt.point(x / parent.width, y / parent.height)
@@ -56,8 +58,6 @@ ApplicationWindow {
                     drag.target: scanline
                     drag.axis: Drag.XandYAxis
                     drag.threshold: 0
-                    onPressed: scan_animation.running = false;
-                    onReleased: scan_animation.running = true;
                 }
             }
 
@@ -65,14 +65,6 @@ ApplicationWindow {
                 id: scanline_text
                 y: - height - 3
                 text: "Scan"
-            }
-
-            SequentialAnimation {
-                id: scan_animation
-                running: true
-                loops: Animation.Infinite
-                NumberAnimation { target: scanline; property: "y"; to: 300; duration: 1000; easing.type: Easing.InOutSine }
-                NumberAnimation { target: scanline; property: "y"; to: 140; duration: 1000; easing.type: Easing.InOutSine }
             }
         }
     }

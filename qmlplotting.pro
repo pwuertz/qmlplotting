@@ -24,7 +24,8 @@ HEADERS += \
     src/sliceplot.h
 
 OTHER_FILES = qmldir \
-    ZoomPanImage.qml
+    ZoomPanImage.qml \
+    SelectionBox.qml
 
 !equals(_PRO_FILE_PWD_, $$OUT_PWD) {
     copy_qmldir.target = $$OUT_PWD/qmldir

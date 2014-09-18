@@ -2,3 +2,4 @@ module qmlplotting
 plugin QmlPlotting
 
 ZoomPanImage 1.0 ZoomPanImage.qml
+SelectionBox 1.0 SelectionBox.qml
