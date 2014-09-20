@@ -111,7 +111,7 @@ public:
     const char *fragmentShader() const {
         return
         "uniform sampler2D image;                                \n"
-        "uniform sampler2D cmap;                                 \n"
+        "uniform sampler1D cmap;                                 \n"
         "uniform highp float amplitude;                          \n"
         "uniform highp float offset;                             \n"
         "varying highp vec2 coord;                               \n"
@@ -120,7 +120,7 @@ public:
         "    bool ok = coord.s > 0. && coord.s < 1. && coord.t > 0. && coord.t < 1.; \n"
         "    highp float val = texture2D(image, coord.st).r;     \n"
         "    val = amplitude * (val + offset);                   \n"
-        "    vec4 color = texture2D(cmap, vec2(val, 1.));        \n"
+        "    vec4 color = texture1D(cmap, val);                  \n"
         "    gl_FragColor = color * opacity * float(ok);         \n"
         "}";
     }
@@ -173,7 +173,7 @@ public:
         // unbind all textures
         QOpenGLFunctions* functions = QOpenGLContext::currentContext()->functions();
         functions->glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        glBindTexture(GL_TEXTURE_1D, 0);
         functions->glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, 0);
     }
@@ -263,7 +263,7 @@ static void updateColormapTexture(QSGFloatTexture* t, const QString& colormap) {
         numpoints = sizeof(cmap_bwr) / (3*sizeof(double));
     }
 
-    t->setData2D(data, numpoints, 1, 3);
+    t->setData1D(data, numpoints, 3);
     t->updateTexture();
 }
 
