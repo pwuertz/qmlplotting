@@ -5,8 +5,9 @@ import qmlplotting 1.0
 ColormappedImage {
     id: image
     property alias viewAnimation: viewRectBehavior.enabled
-
+    property bool movable: true
     viewRect: Qt.rect(0., 0., 1., 1.)
+
     Behavior on viewRect { id: viewRectBehavior; PropertyAnimation {}}
 
     function zoom(factor) {
@@ -56,6 +57,8 @@ ColormappedImage {
         property real old_y: 0
         acceptedButtons: Qt.MiddleButton
         anchors.fill: parent
+        enabled: parent.movable
+
         onWheel: {
             var f = 1. + wheel.angleDelta.y * (0.25 / 120.);
             viewAnimation = false;

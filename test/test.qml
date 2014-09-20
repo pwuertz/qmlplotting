@@ -28,7 +28,9 @@ ApplicationWindow {
         maximumValue: max_slider.value
         colormap: "bwr"
 
-        SelectionBox {}
+        SelectionBox {
+            id: selection_user
+        }
 
         Rectangle {
             id: scanline
@@ -79,13 +81,14 @@ ApplicationWindow {
             menu: colormenu
         }
 
-        ColormappedImage {
+        ZoomPanImage {
             width: 100; height: 100
             dataContainer: container
             minimumValue: .5
             maximumValue: 1.
             colormap: image.colormap
             opacity: .75
+            movable: false
             MouseArea {
                 anchors.fill: parent
                 drag.target: parent
@@ -99,15 +102,17 @@ ApplicationWindow {
                 anchors.fill: parent
                 anchors.margins: -1
             }
+            SelectionBox {rect: selection_user.rect; movable: false}
         }
 
-        ColormappedImage {
+        ZoomPanImage {
             width: 100; height: 100
             dataContainer: container
             minimumValue: 0.
             maximumValue: .5
             colormap: image.colormap
             opacity: .75
+            movable: false
             MouseArea {
                 anchors.fill: parent
                 drag.target: parent
@@ -121,6 +126,7 @@ ApplicationWindow {
                 anchors.fill: parent
                 anchors.margins: -1
             }
+            SelectionBox {rect: selection_user.rect; movable: false}
         }
 
         Rectangle {
