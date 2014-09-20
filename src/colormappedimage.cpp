@@ -11,7 +11,7 @@
 
 // ----------------------------------------------------------------------------
 
-static GLfloat cmap_wjet[] = {
+static double cmap_wjet[] = {
     1.000000, 1.000000, 1.000000,
     0.200000, 0.300000, 1.000000,
     0.000000, 0.500000, 1.000000,
@@ -22,7 +22,7 @@ static GLfloat cmap_wjet[] = {
     1.000000, 0.000000, 0.000000
 };
 
-static GLfloat cmap_jet[] = {
+static double cmap_jet[] = {
     0.000000, 0.000000, 0.500000,
     0.000000, 0.000000, 1.000000,
     0.000000, 1.000000, 1.000000,
@@ -31,14 +31,14 @@ static GLfloat cmap_jet[] = {
     1.000000, 0.000000, 0.000000
 };
 
-static GLfloat cmap_hot[] = {
+static double cmap_hot[] = {
     0.000000, 0.000000, 0.000000,
     0.800000, 0.000000, 0.000000,
     1.000000, 0.900000, 0.000000,
     1.000000, 1.000000, 1.000000
 };
 
-static GLfloat cmap_bwr[] = {
+static double cmap_bwr[] = {
     0.229806, 0.298718, 0.753683,
     0.266234, 0.353095, 0.801467,
     0.303869, 0.406535, 0.844959,
@@ -74,7 +74,7 @@ static GLfloat cmap_bwr[] = {
     0.705673, 0.015556, 0.150233
 };
 
-static GLfloat cmap_gray[] = {
+static double cmap_gray[] = {
     0., 0., 0.,
     1., 1., 1.,
 };
@@ -245,25 +245,25 @@ void ColormappedImage::setColormap(const QString &colormap)
 
 static void updateColormapTexture(QSGFloatTexture* t, const QString& colormap) {
     // default colormap
-    GLfloat* data = cmap_gray;
-    int numpoints = sizeof(cmap_gray) / (3*sizeof(GLfloat));
+    double* data = cmap_gray;
+    int numpoints = sizeof(cmap_gray) / (3*sizeof(double));
 
     // check colormap strings, TODO: build a map for lookup?
     if (colormap == "wjet") {
         data = cmap_wjet;
-        numpoints = sizeof(cmap_wjet) / (3*sizeof(GLfloat));
+        numpoints = sizeof(cmap_wjet) / (3*sizeof(double));
     } else if (colormap == "jet") {
         data = cmap_jet;
-        numpoints = sizeof(cmap_jet) / (3*sizeof(GLfloat));
+        numpoints = sizeof(cmap_jet) / (3*sizeof(double));
     } else if (colormap == "hot") {
         data = cmap_hot;
-        numpoints = sizeof(cmap_hot) / (3*sizeof(GLfloat));
+        numpoints = sizeof(cmap_hot) / (3*sizeof(double));
     } else if (colormap == "bwr") {
         data = cmap_bwr;
-        numpoints = sizeof(cmap_bwr) / (3*sizeof(GLfloat));
+        numpoints = sizeof(cmap_bwr) / (3*sizeof(double));
     }
 
-    t->setDataSource(data, numpoints, 1, 3);
+    t->setData2D(data, numpoints, 1, 3);
     t->updateTexture();
 }
 

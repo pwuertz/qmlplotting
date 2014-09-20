@@ -13,10 +13,10 @@ public:
 
     virtual bool updateTexture() {
         if (m_datacontainer->m_new_data) {
-            setDataSource(m_datacontainer->m_data,
-                          m_datacontainer->m_width,
-                          m_datacontainer->m_height,
-                          1);
+            setData2D(m_datacontainer->m_data,
+                      m_datacontainer->m_width,
+                      m_datacontainer->m_height,
+                      1);
             return QSGFloatTexture::updateTexture();
         } else  {
             return false;
@@ -44,9 +44,9 @@ bool DataContainer::isTextureProvider() const
     return true;
 }
 
-bool DataContainer::setDataFloat32(void *data, int width, int height)
+bool DataContainer::setDataFloat64(void *data, int width, int height)
 {
-    m_data = (float*) (data);
+    m_data = (double*) (data);
     m_width = width;
     m_height = height;
     m_new_data = true;
@@ -57,11 +57,11 @@ bool DataContainer::setDataFloat32(void *data, int width, int height)
 bool DataContainer::setTestData()
 {
     int w = 512, h = 512;
-    int num_bytes = w * h * sizeof(float);
+    int num_bytes = w * h * sizeof(double);
     if (m_test_data_buffer.size() != num_bytes) {
         m_test_data_buffer.resize(num_bytes);
     }
-    float* d = reinterpret_cast<float*>(m_test_data_buffer.data());
+    double* d = reinterpret_cast<double*>(m_test_data_buffer.data());
 
     // gauss + noise
     for (int iy = 0; iy < w; ++iy) {
@@ -80,7 +80,7 @@ bool DataContainer::setTestData()
         }
     }
 
-    setDataFloat32(d, w, h);
+    setDataFloat64(d, w, h);
     return true;
 }
 

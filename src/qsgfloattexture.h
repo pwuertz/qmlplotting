@@ -1,6 +1,7 @@
 #ifndef QSGFLOATTEXTURE_H
 #define QSGFLOATTEXTURE_H
 
+#include <QOpenGLContext>
 #include <QSGDynamicTexture>
 
 class QSGFloatTexture : public QSGDynamicTexture
@@ -14,16 +15,18 @@ public:
     virtual bool hasAlphaChannel() const;
     virtual bool hasMipmaps() const;
     virtual void bind();
-    virtual bool updateTexture();
 
-    void setDataSource(float* data, int w, int h, int num_components);
+    void setData1D(double* data, int size, int num_components);
+    void setData2D(double* data, int width, int height, int num_components);
+    void setData3D(double* data, int width, int height, int depth, int num_components);
+    virtual bool updateTexture();
 
 private:
     unsigned int m_id_texture;
-    float* m_data;
-    int m_width;
-    int m_height;
+    int m_dims[3];
     int m_num_components;
+    GLfloat* m_buffer;
+    int m_buffer_size;
 };
 
 #endif // QSGFLOATTEXTURE_H

@@ -25,14 +25,14 @@ public:
     virtual bool isTextureProvider() const;
     virtual QSGTextureProvider* textureProvider();
 
-    Q_INVOKABLE bool setDataFloat32(void* data, int width, int height);
+    Q_INVOKABLE bool setDataFloat64(void* data, int width, int height);
     Q_INVOKABLE bool setTestData();
 
 signals:
     void dataChanged();
 
 public:
-    float* m_data;
+    double* m_data;
     int m_width;
     int m_height;
 
