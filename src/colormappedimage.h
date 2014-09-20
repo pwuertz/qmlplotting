@@ -20,6 +20,12 @@ public:
     void setViewRect(const QRectF& viewrect);
     void setColormap(const QString& colormap);
 
+public slots:
+    QPointF mapPointFromScene(const QPointF& spoint) const;
+    QRectF mapRectFromScene(const QRectF& srect) const;
+    QPointF mapPointToScene(const QPointF& vpoint) const;
+    QRectF mapRectToScene(const QRectF& vrect) const;
+
 signals:
     void minimumValueChanged(double value);
     void maximumValueChanged(double value);

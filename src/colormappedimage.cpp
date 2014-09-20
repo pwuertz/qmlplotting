@@ -243,6 +243,42 @@ void ColormappedImage::setColormap(const QString &colormap)
     update();
 }
 
+QPointF ColormappedImage::mapPointFromScene(const QPointF &spoint) const
+{
+    double wscale = m_view_rect.width() / width();
+    double hscale = m_view_rect.height() / height();
+    double vx = m_view_rect.x() + spoint.x()*wscale;
+    double vy = m_view_rect.y() + spoint.y()*hscale;
+    return QPointF(vx, vy);
+}
+
+QRectF ColormappedImage::mapRectFromScene(const QRectF &srect) const
+{
+    double wscale = m_view_rect.width() / width();
+    double hscale = m_view_rect.height() / height();
+    double vx = m_view_rect.x() + srect.x()*wscale;
+    double vy = m_view_rect.y() + srect.y()*hscale;
+    return QRectF(vx, vy, srect.width()*wscale, srect.height()*hscale);
+}
+
+QPointF ColormappedImage::mapPointToScene(const QPointF &vpoint) const
+{
+    double wscale = width() / m_view_rect.width();
+    double hscale = height() / m_view_rect.height();
+    double x = (vpoint.x()-m_view_rect.x()) * wscale;
+    double y = (vpoint.y()-m_view_rect.y()) * hscale;
+    return QPointF(x, y);
+}
+
+QRectF ColormappedImage::mapRectToScene(const QRectF &vrect) const
+{
+    double wscale = width() / m_view_rect.width();
+    double hscale = height() / m_view_rect.height();
+    double x = (vrect.x()-m_view_rect.x()) * wscale;
+    double y = (vrect.y()-m_view_rect.y()) * hscale;
+    return QRectF(x, y, vrect.width()*wscale, vrect.height()*hscale);
+}
+
 static void updateColormapTexture(QSGFloatTexture* t, const QString& colormap) {
     // default colormap
     double* data = cmap_gray;

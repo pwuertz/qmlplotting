@@ -19,38 +19,6 @@ ColormappedImage {
         viewRect = Qt.rect(viewRect.x + dw*.5, viewRect.y + dh*.5, w, h);
     }
 
-    function mapPointFromScene(spoint) {
-        var wscale = viewRect.width / image.width
-        var hscale = viewRect.height / image.height
-        var vx = viewRect.x + spoint.x*wscale
-        var vy = viewRect.y + spoint.y*hscale
-        return Qt.point(vx, vy)
-    }
-
-    function mapRectFromScene(srect) {
-        var wscale = viewRect.width / image.width
-        var hscale = viewRect.height / image.height
-        var vx = viewRect.x + srect.x*wscale
-        var vy = viewRect.y + srect.y*hscale
-        return Qt.rect(vx, vy, srect.width*wscale, srect.height*hscale)
-    }
-
-    function mapPointToScene(vpoint) {
-        var wscale = image.width / viewRect.width
-        var hscale = image.height / viewRect.height
-        var x = (vpoint.x-viewRect.x) * wscale
-        var y = (vpoint.y-viewRect.y) * hscale
-        return Qt.point(x, y)
-    }
-
-    function mapRectToScene(vrect) {
-        var wscale = image.width / viewRect.width
-        var hscale = image.height / viewRect.height
-        var x = (vrect.x-viewRect.x) * wscale
-        var y = (vrect.y-viewRect.y) * hscale
-        return Qt.rect(x, y, vrect.width*wscale, vrect.height*hscale)
-    }
-
     // mouse area for panning the view
     MouseArea {
         property real old_x: 0

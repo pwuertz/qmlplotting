@@ -81,14 +81,13 @@ ApplicationWindow {
             menu: colormenu
         }
 
-        ZoomPanImage {
+        ColormappedImage {
             width: 100; height: 100
             dataContainer: container
             minimumValue: .5
             maximumValue: 1.
             colormap: image.colormap
             opacity: .75
-            movable: false
             MouseArea {
                 anchors.fill: parent
                 drag.target: parent
@@ -105,14 +104,13 @@ ApplicationWindow {
             SelectionBox {rect: selection_user.rect; movable: false}
         }
 
-        ZoomPanImage {
+        ColormappedImage {
             width: 100; height: 100
             dataContainer: container
             minimumValue: 0.
             maximumValue: .5
             colormap: image.colormap
             opacity: .75
-            movable: false
             MouseArea {
                 anchors.fill: parent
                 drag.target: parent
