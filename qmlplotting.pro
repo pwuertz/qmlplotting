@@ -11,17 +11,17 @@ SOURCES += \
     src/qmlplotting_plugin.cpp \
     src/colormappedimage.cpp \
     src/qsgfloattexture.cpp \
-    src/datacontainer.cpp \
     src/dataclient.cpp \
-    src/sliceplot.cpp
+    src/sliceplot.cpp \
+    src/datasource.cpp
 
 HEADERS += \
     src/qmlplotting_plugin.h \
     src/colormappedimage.h \
     src/qsgfloattexture.h \
-    src/datacontainer.h \
     src/dataclient.h \
-    src/sliceplot.h
+    src/sliceplot.h \
+    src/datasource.h
 
 OTHER_FILES = qmldir \
     ZoomPanImage.qml \

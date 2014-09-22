@@ -6,15 +6,15 @@ ApplicationWindow {
     title: "QML Plotting Example"
     width: 640; height: 512
 
-    DataContainer {
-        id: container
-        Component.onCompleted: container.setTestData()
+    DataSource {
+        id: source
+        Component.onCompleted: source.setTestData()
     }
 
     ZoomPanImage {
         id: image
         anchors.fill: parent
-        dataContainer: container
+        dataSource: source
         minimumValue: min_slider.value
         maximumValue: max_slider.value
         colormap: "bwr"
@@ -68,12 +68,12 @@ ApplicationWindow {
 
         Button {
             text: "New Data"
-            onClicked: container.setTestData()
+            onClicked: source.setTestData()
         }
 
         ColormappedImage {
             width: 100; height: 100
-            dataContainer: container
+            dataSource: source
             minimumValue: .5
             maximumValue: 1.
             colormap: image.colormap
@@ -96,7 +96,7 @@ ApplicationWindow {
 
         ColormappedImage {
             width: 100; height: 100
-            dataContainer: container
+            dataSource: source
             minimumValue: 0.
             maximumValue: .5
             colormap: image.colormap
@@ -202,7 +202,7 @@ ApplicationWindow {
                 id: plot1
                 anchors.fill: parent
                 anchors.margins: 1
-                dataContainer: container
+                dataSource: source
                 color: "red"
                 numSegments: 30
                 minimumValue: min_slider.value
@@ -214,7 +214,7 @@ ApplicationWindow {
                 id: plot2
                 anchors.fill: parent
                 anchors.margins: 1
-                dataContainer: container
+                dataSource: source
                 color: "black"
                 numSegments: 200
                 minimumValue: min_slider.value

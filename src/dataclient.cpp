@@ -2,8 +2,8 @@
 
 DataClient::DataClient(QQuickItem *parent) :
     QQuickItem(parent),
-    m_new_geometry(false), m_new_data(false), m_new_container(false),
-    m_datacontainer(nullptr)
+    m_new_geometry(false), m_new_data(false), m_new_source(false),
+    m_source(nullptr)
 {
 
 }
@@ -19,22 +19,22 @@ void DataClient::dataChanged()
     update();
 }
 
-void DataClient::setDataContainer(QQuickItem *item)
+void DataClient::setDataSource(QQuickItem *item)
 {
-    DataContainer* d = dynamic_cast<DataContainer*>(item);
-    if (d == m_datacontainer) return;
+    DataSource* d = dynamic_cast<DataSource*>(item);
+    if (d == m_source) return;
 
     // disconnect from previous data source
-    if (m_datacontainer) {
-        disconnect(m_datacontainer, SIGNAL(dataChanged()), this, SLOT(dataChanged()));
+    if (m_source) {
+        disconnect(m_source, SIGNAL(dataChanged()), this, SLOT(dataChanged()));
     }
     // connect to new data source
     if (d) {
         connect(d, SIGNAL(dataChanged()), this, SLOT(dataChanged()));
     }
-    m_datacontainer = d;
-    m_new_container = true;
-    emit dataContainerChanged(d);
+    m_source = d;
+    m_new_source = true;
+    emit dataSourceChanged(d);
     update();
 }
 

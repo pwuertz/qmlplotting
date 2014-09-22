@@ -2,22 +2,22 @@
 #define DATACLIENT_H
 
 #include <QQuickItem>
-#include "datacontainer.h"
+#include "datasource.h"
 
 class DataClient : public QQuickItem
 {
     Q_OBJECT
-    Q_PROPERTY(QQuickItem* dataContainer READ dataContainer WRITE setDataContainer NOTIFY dataContainerChanged)
+    Q_PROPERTY(QQuickItem* dataSource READ dataSource WRITE setDataSource NOTIFY dataSourceChanged)
 
 signals:
-    void dataContainerChanged(QQuickItem* item);
+    void dataSourceChanged(QQuickItem* item);
 
 public:
     explicit DataClient(QQuickItem *parent = 0);
     virtual ~DataClient();
 
-    QQuickItem* dataContainer() const {return m_datacontainer;}
-    void setDataContainer(QQuickItem* item);
+    QQuickItem* dataSource() const {return m_source;}
+    void setDataSource(QQuickItem* item);
 
 protected:
     void geometryChanged(const QRectF & newGeometry, const QRectF & oldGeometry);
@@ -25,8 +25,8 @@ protected:
 
     bool m_new_geometry;
     bool m_new_data;
-    bool m_new_container;
-    DataContainer* m_datacontainer;
+    bool m_new_source;
+    DataSource* m_source;
 };
 
 #endif // DATACLIENT_H

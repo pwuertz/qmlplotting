@@ -1,5 +1,5 @@
-#ifndef DATACONTAINER_H
-#define DATACONTAINER_H
+#ifndef DATASOURCE_H
+#define DATASOURCE_H
 
 #include <QQuickItem>
 #include <QSGTextureProvider>
@@ -9,15 +9,15 @@
 class DataTexture;
 class DataTextureProvider;
 
-class DataContainer : public QQuickItem
+class DataSource : public QQuickItem
 {
     Q_OBJECT
     Q_PROPERTY(int dataWidth READ dataWidth NOTIFY dataChanged)
     Q_PROPERTY(int dataHeight READ dataHeight NOTIFY dataChanged)
 
 public:
-    explicit DataContainer(QQuickItem *parent = 0);
-    virtual ~DataContainer();
+    explicit DataSource(QQuickItem *parent = 0);
+    virtual ~DataSource();
 
     int dataWidth() const {return m_width;}
     int dataHeight() const {return m_height;}
@@ -48,11 +48,11 @@ class DataTextureProvider : public QSGTextureProvider
     Q_OBJECT
 
 public:
-    DataTextureProvider(DataContainer* datacontainer);
+    DataTextureProvider(DataSource* source);
     virtual ~DataTextureProvider();
 
     virtual QSGTexture* texture() const;
     DataTexture* m_datatexture;
 };
 
-#endif // DATACONTAINER_H
+#endif // DATASOURCE_H

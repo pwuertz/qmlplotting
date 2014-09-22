@@ -192,13 +192,13 @@ QSGNode *SlicePlot::updatePaintNode(QSGNode *node, QQuickItem::UpdatePaintNodeDa
     QSGGeometry *geometry;
     SlicePlotMaterial *material;
 
-    if (n && !m_datacontainer) {
+    if (n && !m_source) {
         // remove the node if there is no data source
         delete n;
         return nullptr;
     }
 
-    if  (!n && m_datacontainer) {
+    if  (!n && m_source) {
         // create a node if there is a data source
         n = new QSGGeometryNode();
         // inintialize geometry
@@ -209,7 +209,7 @@ QSGNode *SlicePlot::updatePaintNode(QSGNode *node, QQuickItem::UpdatePaintNodeDa
         n->setFlag(QSGNode::OwnsGeometry);
         // initialize material
         material = new SlicePlotMaterial;
-        material->m_texture_data = m_datacontainer->textureProvider()->texture();
+        material->m_texture_data = m_source->textureProvider()->texture();
         n->setMaterial(material);
         n->setFlag(QSGNode::OwnsMaterial);
     }
@@ -248,9 +248,9 @@ QSGNode *SlicePlot::updatePaintNode(QSGNode *node, QQuickItem::UpdatePaintNodeDa
     }
 
     // check for data source change
-    if (m_new_container) {
-        material->m_texture_data = m_datacontainer->textureProvider()->texture();
-        m_new_container = false;
+    if (m_new_source) {
+        material->m_texture_data = m_source->textureProvider()->texture();
+        m_new_source = false;
     }
 
     // check if the image texture should be updated

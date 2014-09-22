@@ -308,13 +308,13 @@ QSGNode *ColormappedImage::updatePaintNode(QSGNode *node, QQuickItem::UpdatePain
     QSGGeometry *geometry;
     QSQColormapMaterial *material;
 
-    if (n && !m_datacontainer) {
+    if (n && !m_source) {
         // remove the node if there is no data source
         delete n;
         return nullptr;
     }
 
-    if  (!n && m_datacontainer) {
+    if  (!n && m_source) {
         // create a node if there is a data source
         n = new QSGGeometryNode();
         // inintialize geometry
@@ -331,7 +331,7 @@ QSGNode *ColormappedImage::updatePaintNode(QSGNode *node, QQuickItem::UpdatePain
         // initialize material
         material = new QSQColormapMaterial;
         material->m_texture_cmap = m_texture_cmap;
-        material->m_texture_image = m_datacontainer->textureProvider()->texture();
+        material->m_texture_image = m_source->textureProvider()->texture();
         n->setMaterial(material);
         n->setFlag(QSGNode::OwnsMaterial);
     }
@@ -368,9 +368,9 @@ QSGNode *ColormappedImage::updatePaintNode(QSGNode *node, QQuickItem::UpdatePain
     material->m_offset = -m_min_value;
 
     // check for data source change
-    if (m_new_container) {
-        material->m_texture_image = m_datacontainer->textureProvider()->texture();
-        m_new_container = false;
+    if (m_new_source) {
+        material->m_texture_image = m_source->textureProvider()->texture();
+        m_new_source = false;
     }
 
     // check if the image texture should be updated
