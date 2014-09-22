@@ -119,58 +119,46 @@ void QSGFloatTexture::bind() {
     }
 }
 
-void QSGFloatTexture::setData1D(double *data, int size, int num_components)
+void QSGFloatTexture::setData(const double *data, const int *dims, int num_dims, int num_components)
 {
-    m_dims[0] = size;
-    m_num_dims = 1;
+    if (num_dims <= 0 || num_dims > 3) return;
+    m_num_dims = num_dims;
     m_num_components = num_components;
-    int n = size * num_components;
-    if (m_buffer_size < n) {
-        if (m_buffer) delete[] m_buffer;
-        m_buffer = new GLfloat[n];
-        m_buffer_size = n;
+
+    // copy dims and calculate number of elements
+    int num_elements = num_components;
+    for (int i = 0; i < num_dims; ++i) {
+        m_dims[i] = dims[i];
+        num_elements *= dims[i];
     }
-    for (int i = 0; i < n; ++i) {
+    // allocate new buffer if necessary
+    if (m_buffer_size < num_elements) {
+        if (m_buffer) delete[] m_buffer;
+        m_buffer = new GLfloat[num_elements];
+        m_buffer_size = num_elements;
+    }
+    // copy data to float buffer for texture upload later
+    for (int i = 0; i < num_elements; ++i) {
         m_buffer[i] = data[i];
     }
     m_needs_upload = true;
 }
 
-void QSGFloatTexture::setData2D(double *data, int width, int height, int num_components)
+void QSGFloatTexture::setData1D(const double *data, int size, int num_components)
 {
-    m_dims[0] = width;
-    m_dims[1] = height;
-    m_num_dims = 2;
-    m_num_components = num_components;
-    int n = width * height * num_components;
-    if (m_buffer_size < n) {
-        if (m_buffer) delete[] m_buffer;
-        m_buffer = new GLfloat[n];
-        m_buffer_size = n;
-    }
-    for (int i = 0; i < n; ++i) {
-        m_buffer[i] = data[i];
-    }
-    m_needs_upload = true;
+    setData(data, &size, 1, num_components);
 }
 
-void QSGFloatTexture::setData3D(double *data, int width, int height, int depth, int num_components)
+void QSGFloatTexture::setData2D(const double *data, int width, int height, int num_components)
 {
-    m_dims[0] = width;
-    m_dims[1] = height;
-    m_dims[2] = depth;
-    m_num_dims = 3;
-    m_num_components = num_components;
-    int n = width * height * depth * num_components;
-    if (m_buffer_size < n) {
-        if (m_buffer) delete[] m_buffer;
-        m_buffer = new GLfloat[n];
-        m_buffer_size = n;
-    }
-    for (int i = 0; i < n; ++i) {
-        m_buffer[i] = data[i];
-    }
-    m_needs_upload = true;
+    int dims[] = {width, height};
+    setData(data, dims, 2, num_components);
+}
+
+void QSGFloatTexture::setData3D(const double *data, int width, int height, int depth, int num_components)
+{
+    int dims[] = {width, height, depth};
+    setData(data, dims, 3, num_components);
 }
 
 bool QSGFloatTexture::updateTexture() {

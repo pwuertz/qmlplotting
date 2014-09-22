@@ -16,9 +16,10 @@ public:
     virtual bool hasMipmaps() const;
     virtual void bind();
 
-    void setData1D(double* data, int size, int num_components);
-    void setData2D(double* data, int width, int height, int num_components);
-    void setData3D(double* data, int width, int height, int depth, int num_components);
+    void setData(const double* data, const int* dims, int num_dims, int num_components);
+    void setData1D(const double* data, int size, int num_components);
+    void setData2D(const double* data, int width, int height, int num_components);
+    void setData3D(const double* data, int width, int height, int depth, int num_components);
     virtual bool updateTexture();
 
 private:

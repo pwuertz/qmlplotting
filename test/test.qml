@@ -6,7 +6,7 @@ ApplicationWindow {
     title: "QML Plotting Example"
     width: 640; height: 512
 
-    DataSource {
+    DataSource2D {
         id: source
         Component.onCompleted: source.setTestData()
     }

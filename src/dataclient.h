@@ -17,7 +17,7 @@ public:
     virtual ~DataClient();
 
     QQuickItem* dataSource() const {return m_source;}
-    void setDataSource(QQuickItem* item);
+    virtual void setDataSource(QQuickItem* item);
 
 protected:
     void geometryChanged(const QRectF & newGeometry, const QRectF & oldGeometry);

@@ -9,50 +9,83 @@
 class DataTexture;
 class DataTextureProvider;
 
+
 class DataSource : public QQuickItem
 {
     Q_OBJECT
-    Q_PROPERTY(int dataWidth READ dataWidth NOTIFY dataChanged)
-    Q_PROPERTY(int dataHeight READ dataHeight NOTIFY dataChanged)
 
 public:
     explicit DataSource(QQuickItem *parent = 0);
     virtual ~DataSource();
 
-    int dataWidth() const {return m_width;}
-    int dataHeight() const {return m_height;}
-
     virtual bool isTextureProvider() const;
     virtual QSGTextureProvider* textureProvider();
 
-    Q_INVOKABLE bool setDataFloat64(void* data, int width, int height);
-    Q_INVOKABLE bool setTestData();
+public slots:
+    virtual bool setTestData() = 0;
 
 signals:
+    void dimensionsChanged();
     void dataChanged();
 
-public:
-    double* m_data;
-    int m_width;
-    int m_height;
+protected:
+    bool setData(const double* data, const int* dims, int num_dims);
+
+    const double* m_data;
+    int m_num_dims;
+    int m_dims[3];
+    QByteArray m_test_data_buffer;
 
 private:
     bool m_new_data;
     DataTextureProvider* m_provider;
-    QByteArray m_test_data_buffer;
     friend class DataTexture;
 };
 
-class DataTextureProvider : public QSGTextureProvider
+
+class DataSource1D : public DataSource
 {
     Q_OBJECT
+    Q_PROPERTY(int dataSize READ dataSize NOTIFY dataSizeChanged)
 
 public:
-    DataTextureProvider(DataSource* source);
-    virtual ~DataTextureProvider();
+    explicit DataSource1D(QQuickItem *parent = 0);
+    virtual ~DataSource1D() {}
 
-    virtual QSGTexture* texture() const;
-    DataTexture* m_datatexture;
+    int dataSize() const {return m_dims[0];}
+
+signals:
+    void dataSizeChanged(int size);
+
+public slots:
+    virtual bool setTestData();
+    bool setDataFloat64(const void* data, int size);
+
+private slots:
+    void handleDimensionsChanged();
+};
+
+
+class DataSource2D : public DataSource
+{
+    Q_OBJECT
+    Q_PROPERTY(QSize dataSize READ dataSize NOTIFY dataSizeChanged)
+
+public:
+    explicit DataSource2D(QQuickItem *parent = 0);
+    virtual ~DataSource2D() {}
+
+    QSize dataSize() const {return QSize(m_dims[0], m_dims[1]);}
+
+signals:
+    void dataSizeChanged(const QSize& shape);
+
+public slots:
+    virtual bool setTestData();
+    bool setDataFloat64(const void* data, int width, int height);
+
+private slots:
+    void handleDimensionsChanged();
 };
 
 #endif // DATASOURCE_H

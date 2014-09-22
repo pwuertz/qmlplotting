@@ -20,6 +20,8 @@ public:
     void setViewRect(const QRectF& viewrect);
     void setColormap(const QString& colormap);
 
+    virtual void setDataSource(QQuickItem* item);
+
 public slots:
     QPointF mapPointFromScene(const QPointF& spoint) const;
     QRectF mapRectFromScene(const QRectF& srect) const;
