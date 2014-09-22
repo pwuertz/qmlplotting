@@ -300,7 +300,6 @@ static void updateColormapTexture(QSGFloatTexture* t, const QString& colormap) {
     }
 
     t->setData1D(data, numpoints, 3);
-    t->updateTexture();
 }
 
 QSGNode *ColormappedImage::updatePaintNode(QSGNode *node, QQuickItem::UpdatePaintNodeData *)

@@ -17,7 +17,7 @@ public:
                       m_datacontainer->m_width,
                       m_datacontainer->m_height,
                       1);
-            return QSGFloatTexture::updateTexture();
+            return true;
         } else  {
             return false;
         }

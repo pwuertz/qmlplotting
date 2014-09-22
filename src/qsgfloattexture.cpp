@@ -6,7 +6,8 @@ QSGFloatTexture::QSGFloatTexture() :
     m_id_texture(0),
     m_num_components(0),
     m_buffer(nullptr),
-    m_buffer_size(0)
+    m_buffer_size(0),
+    m_needs_upload(false)
 {
     m_dims[0] = 0;
     m_dims[1] = 0;
@@ -63,6 +64,42 @@ void QSGFloatTexture::bind() {
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
     }
+
+    if (m_needs_upload) {
+        m_needs_upload = false;
+        // determine color format
+        GLint internal_format;
+        GLenum format;
+        switch (m_num_components) {
+        case 1:
+            internal_format = GL_R32F;
+            format = GL_RED;
+            break;
+        case 2:
+            internal_format = GL_RG32F;
+            format = GL_RG;
+            break;
+        case 3:
+            internal_format = GL_RGB32F;
+            format = GL_RGB;
+            break;
+        case 4:
+            internal_format = GL_RGBA32F;
+            format = GL_RGBA;
+            break;
+        default:
+            return;
+        }
+
+        // upload data as 1D, 2D or 3D texture
+        if (m_dims[1] == 0) {
+            glTexImage1D(GL_TEXTURE_1D, 0, internal_format, m_dims[0], 0, format, GL_FLOAT, m_buffer);
+        } else if (m_dims[2] == 0) {
+            glTexImage2D(GL_TEXTURE_2D, 0, internal_format, m_dims[0], m_dims[1], 0, format, GL_FLOAT, m_buffer);
+        } else {
+            glTexImage3D(GL_TEXTURE_3D, 0, internal_format, m_dims[0], m_dims[1], m_dims[2], 0, format, GL_FLOAT, m_buffer);
+        }
+    }
 }
 
 void QSGFloatTexture::setData1D(double *data, int size, int num_components)
@@ -80,6 +117,7 @@ void QSGFloatTexture::setData1D(double *data, int size, int num_components)
     for (int i = 0; i < n; ++i) {
         m_buffer[i] = data[i];
     }
+    m_needs_upload = true;
 }
 
 void QSGFloatTexture::setData2D(double *data, int width, int height, int num_components)
@@ -97,6 +135,7 @@ void QSGFloatTexture::setData2D(double *data, int width, int height, int num_com
     for (int i = 0; i < n; ++i) {
         m_buffer[i] = data[i];
     }
+    m_needs_upload = true;
 }
 
 void QSGFloatTexture::setData3D(double *data, int width, int height, int depth, int num_components)
@@ -114,46 +153,9 @@ void QSGFloatTexture::setData3D(double *data, int width, int height, int depth, 
     for (int i = 0; i < n; ++i) {
         m_buffer[i] = data[i];
     }
+    m_needs_upload = true;
 }
 
 bool QSGFloatTexture::updateTexture() {
-    if (!m_buffer) return false;
-
-    // bind texture object
-    bind();
-
-    // determine color format
-    GLint internal_format;
-    GLenum format;
-    switch (m_num_components) {
-    case 1:
-        internal_format = GL_R32F;
-        format = GL_RED;
-        break;
-    case 2:
-        internal_format = GL_RG32F;
-        format = GL_RG;
-        break;
-    case 3:
-        internal_format = GL_RGB32F;
-        format = GL_RGB;
-        break;
-    case 4:
-        internal_format = GL_RGBA32F;
-        format = GL_RGBA;
-        break;
-    default:
-        return false;
-    }
-
-    // upload data as 1D, 2D or 3D texture
-    if (m_dims[1] == 0) {
-        glTexImage1D(GL_TEXTURE_1D, 0, internal_format, m_dims[0], 0, format, GL_FLOAT, m_buffer);
-    } else if (m_dims[2] == 0) {
-        glTexImage2D(GL_TEXTURE_2D, 0, internal_format, m_dims[0], m_dims[1], 0, format, GL_FLOAT, m_buffer);
-    } else {
-        glTexImage3D(GL_TEXTURE_3D, 0, internal_format, m_dims[0], m_dims[1], m_dims[2], 0, format, GL_FLOAT, m_buffer);
-    }
-
-    return true;
+    return false;
 }

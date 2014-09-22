@@ -27,6 +27,7 @@ private:
     int m_num_components;
     GLfloat* m_buffer;
     int m_buffer_size;
+    bool m_needs_upload;
 };
 
 #endif // QSGFLOATTEXTURE_H
