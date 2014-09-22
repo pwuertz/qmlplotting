@@ -4,6 +4,7 @@
 QSGFloatTexture::QSGFloatTexture() :
     QSGDynamicTexture(),
     m_id_texture(0),
+    m_num_dims(0),
     m_num_components(0),
     m_buffer(nullptr),
     m_buffer_size(0),
@@ -33,11 +34,15 @@ int QSGFloatTexture::textureId() const {
 }
 
 QSize QSGFloatTexture::textureSize() const {
-    return QSize(m_dims[0], m_dims[1]);
+    if (m_num_dims == 2) {
+        return QSize(m_dims[0], m_dims[1]);
+    } else {
+        return QSize();
+    }
 }
 
 bool QSGFloatTexture::hasAlphaChannel() const {
-    return false;
+    return (m_num_components == 4);
 }
 
 bool QSGFloatTexture::hasMipmaps() const {
@@ -45,24 +50,30 @@ bool QSGFloatTexture::hasMipmaps() const {
 }
 
 void QSGFloatTexture::bind() {
-    if (m_dims[1] == 0) {
+    switch (m_num_dims) {
+    case 1:
         glBindTexture(GL_TEXTURE_1D, m_id_texture);
         glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    } else if (m_dims[2] == 0) {
+        break;
+    case 2:
         glBindTexture(GL_TEXTURE_2D, m_id_texture);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    } else {
+        break;
+    case 3:
         glBindTexture(GL_TEXTURE_3D, m_id_texture);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        break;
+    default:
+        break;
     }
 
     if (m_needs_upload) {
@@ -92,12 +103,18 @@ void QSGFloatTexture::bind() {
         }
 
         // upload data as 1D, 2D or 3D texture
-        if (m_dims[1] == 0) {
+        switch (m_num_dims) {
+        case 1:
             glTexImage1D(GL_TEXTURE_1D, 0, internal_format, m_dims[0], 0, format, GL_FLOAT, m_buffer);
-        } else if (m_dims[2] == 0) {
+            break;
+        case 2:
             glTexImage2D(GL_TEXTURE_2D, 0, internal_format, m_dims[0], m_dims[1], 0, format, GL_FLOAT, m_buffer);
-        } else {
+            break;
+        case 3:
             glTexImage3D(GL_TEXTURE_3D, 0, internal_format, m_dims[0], m_dims[1], m_dims[2], 0, format, GL_FLOAT, m_buffer);
+            break;
+        default:
+            return;
         }
     }
 }
@@ -105,8 +122,7 @@ void QSGFloatTexture::bind() {
 void QSGFloatTexture::setData1D(double *data, int size, int num_components)
 {
     m_dims[0] = size;
-    m_dims[1] = 0;
-    m_dims[2] = 0;
+    m_num_dims = 1;
     m_num_components = num_components;
     int n = size * num_components;
     if (m_buffer_size < n) {
@@ -124,7 +140,7 @@ void QSGFloatTexture::setData2D(double *data, int width, int height, int num_com
 {
     m_dims[0] = width;
     m_dims[1] = height;
-    m_dims[2] = 0;
+    m_num_dims = 2;
     m_num_components = num_components;
     int n = width * height * num_components;
     if (m_buffer_size < n) {
@@ -143,6 +159,7 @@ void QSGFloatTexture::setData3D(double *data, int width, int height, int depth, 
     m_dims[0] = width;
     m_dims[1] = height;
     m_dims[2] = depth;
+    m_num_dims = 3;
     m_num_components = num_components;
     int n = width * height * depth * num_components;
     if (m_buffer_size < n) {

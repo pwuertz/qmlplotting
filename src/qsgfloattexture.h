@@ -23,6 +23,7 @@ public:
 
 private:
     unsigned int m_id_texture;
+    int m_num_dims;
     int m_dims[3];
     int m_num_components;
     GLfloat* m_buffer;
