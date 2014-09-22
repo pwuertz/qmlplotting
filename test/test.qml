@@ -11,15 +11,6 @@ ApplicationWindow {
         Component.onCompleted: container.setTestData()
     }
 
-    Menu {
-        id: colormenu
-        MenuItem {text: "Wjet"; onTriggered: image.colormap = text.toLowerCase();}
-        MenuItem {text: "Jet"; onTriggered: image.colormap = text.toLowerCase();}
-        MenuItem {text: "Hot"; onTriggered: image.colormap = text.toLowerCase();}
-        MenuItem {text: "Bwr"; onTriggered: image.colormap = text.toLowerCase();}
-        MenuItem {text: "Gray"; onTriggered: image.colormap = text.toLowerCase();}
-    }
-
     ZoomPanImage {
         id: image
         anchors.fill: parent
@@ -76,9 +67,8 @@ ApplicationWindow {
         spacing: 3
 
         Button {
-            text: "  Colormap: " + image.colormap + "  "
-            //onClicked: colormenu.popup()
-            menu: colormenu
+            text: "New Data"
+            onClicked: container.setTestData()
         }
 
         ColormappedImage {

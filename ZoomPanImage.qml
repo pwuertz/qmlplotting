@@ -1,5 +1,6 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.1
+import QtQml 2.2
 import qmlplotting 1.0
 
 ColormappedImage {
@@ -17,6 +18,26 @@ ColormappedImage {
         var dw = viewRect.width - w;
         var dh = viewRect.height - h;
         viewRect = Qt.rect(viewRect.x + dw*.5, viewRect.y + dh*.5, w, h);
+    }
+
+    Menu {
+        id: colormenu
+        Instantiator {
+            model: ["wjet", "jet", "hot", "bwr", "gray"]
+            MenuItem {
+                text: modelData
+                checkable: true
+                checked: image.colormap == text
+                onTriggered: image.colormap = text
+            }
+            onObjectAdded: colormenu.insertItem(index, object)
+            onObjectRemoved: colormenu.removeItem(object)
+        }
+    }
+    MouseArea {
+        anchors.fill: parent
+        acceptedButtons: Qt.RightButton
+        onClicked: colormenu.popup()
     }
 
     // mouse area for panning the view
