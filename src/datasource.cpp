@@ -48,7 +48,7 @@ public:
 DataSource::DataSource(QQuickItem *parent) :
     QQuickItem(parent),
     m_data(nullptr), m_num_dims(0),
-    m_test_data_buffer(),
+    m_data_buffer(),
     m_new_data(false),
     m_provider(nullptr)
 {
@@ -82,7 +82,7 @@ QSGTextureProvider *DataSource::textureProvider()
     return m_provider;
 }
 
-bool DataSource::setData(const double *data, const int *dims, int num_dims)
+bool DataSource::setData(double *data, const int *dims, int num_dims)
 {
     if (num_dims <= 0 || num_dims > 3) {
         qWarning("DataSource::setData invalid number of dimensions");
@@ -101,35 +101,77 @@ bool DataSource::setData(const double *data, const int *dims, int num_dims)
         }
     }
     m_data = data;
-    m_new_data = true;
     if (num_dims_changed) emit dataimensionsChanged();
     if (size_changed) emit dataSizeChanged();
+    commitData();
+    return true;
+}
+
+bool DataSource::setData1D(void* data, int size) {
+    return setData((double*) data, &size, 1);
+}
+
+bool DataSource::setData2D(void* data, int width, int height) {
+    int dims[] = {width, height};
+    return setData((double*) data, dims, 2);
+}
+
+bool DataSource::setData3D(void* data, int width, int height, int depth){
+    int dims[] = {width, height, depth};
+    return setData((double*) data, dims, 3);
+}
+
+void* DataSource::allocateData1D(int size)
+{
+    int num_bytes = size * sizeof(double);
+    if (m_data_buffer.size() != num_bytes) {
+        m_data_buffer.resize(num_bytes);
+    }
+    double *data = (double*) m_data_buffer.data();
+    setData((double*) data, &size, 1);
+    return data;
+}
+
+void* DataSource::allocateData2D(int width, int height)
+{
+    int num_bytes = width * height * sizeof(double);
+    if (m_data_buffer.size() != num_bytes) {
+        m_data_buffer.resize(num_bytes);
+    }
+    int dims[] = {width, height};
+    double *data = (double*) m_data_buffer.data();
+    setData((double*) data, dims, 2);
+    return data;
+}
+
+void* DataSource::allocateData3D(int width, int height, int depth)
+{
+    int num_bytes = width * height * depth * sizeof(double);
+    if (m_data_buffer.size() != num_bytes) {
+        m_data_buffer.resize(num_bytes);
+    }
+    int dims[] = {width, height, depth};
+    double *data = (double*) m_data_buffer.data();
+    setData((double*) data, dims, 3);
+    return data;
+}
+
+bool DataSource::commitData()
+{
+    m_new_data = true;
     emit dataChanged();
     return true;
 }
 
-bool DataSource::setData1D(const void* data, int size) {
-    return setData(reinterpret_cast<const double*>(data), &size, 1);
-}
-
-bool DataSource::setData2D(const void* data, int width, int height) {
-    int dims[] = {width, height};
-    return setData(reinterpret_cast<const double*>(data), dims, 2);
-}
-
-bool DataSource::setData3D(const void* data, int width, int height, int depth){
-    int dims[] = {width, height, depth};
-    return setData(reinterpret_cast<const double*>(data), dims, 3);
+bool DataSource::ownsData()
+{
+    return m_data == (double*) m_data_buffer.data();
 }
 
 bool DataSource::setTestData1D()
 {
     int size = 512;
-    int num_bytes = size * sizeof(double);
-    if (m_test_data_buffer.size() != num_bytes) {
-        m_test_data_buffer.resize(num_bytes);
-    }
-    double* d = reinterpret_cast<double*>(m_test_data_buffer.data());
+    double* d = (double *) allocateData1D(size);
 
     // gauss + noise
     for (int ix = 0; ix < size; ++ix) {
@@ -137,18 +179,13 @@ bool DataSource::setTestData1D()
         double r = rand() * (1./RAND_MAX);
         d[ix] = exp(-(x*x)*2.) + .2 * (r-.5);
     }
-
-    return setData1D(d, size);
+    return true;
 }
 
 bool DataSource::setTestData2D()
 {
     int w = 512, h = 512;
-    int num_bytes = w * h * sizeof(double);
-    if (m_test_data_buffer.size() != num_bytes) {
-        m_test_data_buffer.resize(num_bytes);
-    }
-    double* d = reinterpret_cast<double*>(m_test_data_buffer.data());
+    double* d = (double *) allocateData2D(w, h);
 
     // gauss + noise
     for (int iy = 0; iy < h; ++iy) {
@@ -166,5 +203,5 @@ bool DataSource::setTestData2D()
             d[iy*w + ix] = x;
         }
     }
-    return setData2D(d, w, h);
+    return true;
 }

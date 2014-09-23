@@ -28,14 +28,19 @@ public:
     int dataWidth() const {return m_dims[0];}
     int dataHeight() const {return m_dims[1];}
     int dataDepth() const {return m_dims[2];}
-    const double* data() const {return m_data;}
 
 public slots:
     bool setTestData1D();
     bool setTestData2D();
-    bool setData1D(const void* data, int size);
-    bool setData2D(const void* data, int width, int height);
-    bool setData3D(const void* data, int width, int height, int depth);
+    bool setData1D(void* data, int size);
+    bool setData2D(void* data, int width, int height);
+    bool setData3D(void* data, int width, int height, int depth);
+    void* allocateData1D(int size);
+    void* allocateData2D(int width, int height);
+    void* allocateData3D(int width, int height, int depth);
+    void* data() const {return m_data;}
+    bool commitData();
+    bool ownsData();
 
 signals:
     void dataimensionsChanged();
@@ -43,12 +48,12 @@ signals:
     void dataChanged();
 
 protected:
-    bool setData(const double* data, const int* dims, int num_dims);
+    bool setData(double* data, const int* dims, int num_dims);
 
-    const double* m_data;
+    double* m_data;
     int m_num_dims;
     int m_dims[3];
-    QByteArray m_test_data_buffer;
+    QByteArray m_data_buffer;
 
 private:
     bool m_new_data;
