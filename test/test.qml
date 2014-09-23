@@ -6,9 +6,9 @@ ApplicationWindow {
     title: "QML Plotting Example"
     width: 640; height: 512
 
-    DataSource2D {
+    DataSource {
         id: source
-        Component.onCompleted: source.setTestData()
+        Component.onCompleted: source.setTestData2D()
     }
 
     ZoomPanImage {
@@ -68,7 +68,7 @@ ApplicationWindow {
 
         Button {
             text: "New Data"
-            onClicked: source.setTestData()
+            onClicked: source.setTestData2D()
         }
 
         ColormappedImage {

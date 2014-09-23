@@ -22,7 +22,11 @@ public:
     virtual QSGTextureProvider* textureProvider();
 
 public slots:
-    virtual bool setTestData() = 0;
+    bool setTestData1D();
+    bool setTestData2D();
+    bool setData1D(const void* data, int size);
+    bool setData2D(const void* data, int width, int height);
+    bool setData3D(const void* data, int width, int height, int depth);
 
 signals:
     void dimensionsChanged();
@@ -40,52 +44,6 @@ private:
     bool m_new_data;
     DataTextureProvider* m_provider;
     friend class DataTexture;
-};
-
-
-class DataSource1D : public DataSource
-{
-    Q_OBJECT
-    Q_PROPERTY(int dataSize READ dataSize NOTIFY dataSizeChanged)
-
-public:
-    explicit DataSource1D(QQuickItem *parent = 0);
-    virtual ~DataSource1D() {}
-
-    int dataSize() const {return m_dims[0];}
-
-signals:
-    void dataSizeChanged(int size);
-
-public slots:
-    virtual bool setTestData();
-    bool setDataFloat64(const void* data, int size);
-
-private slots:
-    void handleDimensionsChanged();
-};
-
-
-class DataSource2D : public DataSource
-{
-    Q_OBJECT
-    Q_PROPERTY(QSize dataSize READ dataSize NOTIFY dataSizeChanged)
-
-public:
-    explicit DataSource2D(QQuickItem *parent = 0);
-    virtual ~DataSource2D() {}
-
-    QSize dataSize() const {return QSize(m_dims[0], m_dims[1]);}
-
-signals:
-    void dataSizeChanged(const QSize& shape);
-
-public slots:
-    virtual bool setTestData();
-    bool setDataFloat64(const void* data, int width, int height);
-
-private slots:
-    void handleDimensionsChanged();
 };
 
 #endif // DATASOURCE_H

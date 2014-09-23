@@ -243,16 +243,6 @@ void ColormappedImage::setColormap(const QString &colormap)
     update();
 }
 
-void ColormappedImage::setDataSource(QQuickItem *item)
-{
-    DataSource* d = dynamic_cast<DataSource2D*>(item);
-    if (!d) {
-        qDebug() << "ColormappedImage requires DataSource2D";
-        return;
-    }
-    DataClient::setDataSource(item);
-}
-
 QPointF ColormappedImage::mapPointFromScene(const QPointF &spoint) const
 {
     double wscale = m_view_rect.width() / width();

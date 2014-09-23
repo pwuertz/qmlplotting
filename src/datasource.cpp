@@ -88,11 +88,15 @@ bool DataSource::setData(const double *data, const int *dims, int num_dims)
         qWarning("DataSource::setData invalid number of dimensions");
         return false;
     }
+    bool dims_changed = (m_num_dims != num_dims);
     m_num_dims = num_dims;
-    bool dims_changed = false;
-    for (int i = 0; i < num_dims; ++i) {
-        dims_changed = dims_changed || (m_dims[i] != dims[i]);
-        m_dims[i] = dims[i];
+    for (int i = 0; i < 3; ++i) {
+        if (i < num_dims) {
+            dims_changed = dims_changed || (m_dims[i] != dims[i]);
+            m_dims[i] = dims[i];
+        } else {
+            m_dims[i] = 0;
+        }
     }
     m_data = data;
     m_new_data = true;
@@ -101,23 +105,21 @@ bool DataSource::setData(const double *data, const int *dims, int num_dims)
     return true;
 }
 
-
-DataSource1D::DataSource1D(QQuickItem *parent) : DataSource(parent)
-{
-    connect(this, SIGNAL(dimensionsChanged()), this, SLOT(handleDimensionsChanged()));
-}
-
-void DataSource1D::handleDimensionsChanged()
-{
-    emit dataSizeChanged(m_dims[0]);
-}
-
-bool DataSource1D::setDataFloat64(const void *data, int size)
-{
+bool DataSource::setData1D(const void* data, int size) {
     return setData(reinterpret_cast<const double*>(data), &size, 1);
 }
 
-bool DataSource1D::setTestData()
+bool DataSource::setData2D(const void* data, int width, int height) {
+    int dims[] = {width, height};
+    return setData(reinterpret_cast<const double*>(data), dims, 2);
+}
+
+bool DataSource::setData3D(const void* data, int width, int height, int depth){
+    int dims[] = {width, height, depth};
+    return setData(reinterpret_cast<const double*>(data), dims, 3);
+}
+
+bool DataSource::setTestData1D()
 {
     int size = 512;
     int num_bytes = size * sizeof(double);
@@ -136,24 +138,7 @@ bool DataSource1D::setTestData()
     return setData(d, &size, 1);
 }
 
-
-DataSource2D::DataSource2D(QQuickItem *parent) : DataSource(parent)
-{
-    connect(this, SIGNAL(dimensionsChanged()), this, SLOT(handleDimensionsChanged()));
-}
-
-void DataSource2D::handleDimensionsChanged()
-{
-    emit dataSizeChanged(dataSize());
-}
-
-bool DataSource2D::setDataFloat64(const void *data, int width, int height)
-{
-    int dims[2] = {width, height};
-    return setData(reinterpret_cast<const double*>(data), dims, 2);
-}
-
-bool DataSource2D::setTestData()
+bool DataSource::setTestData2D()
 {
     int w = 512, h = 512;
     int num_bytes = w * h * sizeof(double);
@@ -178,7 +163,5 @@ bool DataSource2D::setTestData()
             d[iy*w + ix] = x;
         }
     }
-
-    int dims[2] = {w, h};
-    return setData(d, dims, 2);
+    return setData2D(d, w, h);
 }
