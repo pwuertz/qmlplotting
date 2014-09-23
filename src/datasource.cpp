@@ -88,11 +88,13 @@ bool DataSource::setData(const double *data, const int *dims, int num_dims)
         qWarning("DataSource::setData invalid number of dimensions");
         return false;
     }
-    bool dims_changed = (m_num_dims != num_dims);
+
+    bool num_dims_changed = (m_num_dims != num_dims);
+    bool size_changed = num_dims_changed;
     m_num_dims = num_dims;
     for (int i = 0; i < 3; ++i) {
         if (i < num_dims) {
-            dims_changed = dims_changed || (m_dims[i] != dims[i]);
+            size_changed = size_changed || (m_dims[i] != dims[i]);
             m_dims[i] = dims[i];
         } else {
             m_dims[i] = 0;
@@ -100,7 +102,8 @@ bool DataSource::setData(const double *data, const int *dims, int num_dims)
     }
     m_data = data;
     m_new_data = true;
-    emit dimensionsChanged();
+    if (num_dims_changed) emit dataimensionsChanged();
+    if (size_changed) emit dataSizeChanged();
     emit dataChanged();
     return true;
 }
@@ -135,7 +138,7 @@ bool DataSource::setTestData1D()
         d[ix] = exp(-(x*x)*2.) + .2 * (r-.5);
     }
 
-    return setData(d, &size, 1);
+    return setData1D(d, size);
 }
 
 bool DataSource::setTestData2D()
@@ -148,8 +151,8 @@ bool DataSource::setTestData2D()
     double* d = reinterpret_cast<double*>(m_test_data_buffer.data());
 
     // gauss + noise
-    for (int iy = 0; iy < w; ++iy) {
-        for (int ix = 0; ix < h; ++ix) {
+    for (int iy = 0; iy < h; ++iy) {
+        for (int ix = 0; ix < w; ++ix) {
             double x = -1. + 2.*(ix * (1./w));
             double y = -1. + 2.*(iy * (1./h));
             double r = rand() * (1./RAND_MAX);

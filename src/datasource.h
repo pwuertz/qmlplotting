@@ -13,6 +13,10 @@ class DataTextureProvider;
 class DataSource : public QQuickItem
 {
     Q_OBJECT
+    Q_PROPERTY(int dataDimensions MEMBER m_num_dims NOTIFY dataimensionsChanged)
+    Q_PROPERTY(int dataWidth READ dataWidth NOTIFY dataSizeChanged)
+    Q_PROPERTY(int dataHeight READ dataHeight  NOTIFY dataSizeChanged)
+    Q_PROPERTY(int dataDepth READ dataDepth  NOTIFY dataSizeChanged)
 
 public:
     explicit DataSource(QQuickItem *parent = 0);
@@ -20,6 +24,11 @@ public:
 
     virtual bool isTextureProvider() const;
     virtual QSGTextureProvider* textureProvider();
+
+    int dataWidth() const {return m_dims[0];}
+    int dataHeight() const {return m_dims[1];}
+    int dataDepth() const {return m_dims[2];}
+    const double* data() const {return m_data;}
 
 public slots:
     bool setTestData1D();
@@ -29,7 +38,8 @@ public slots:
     bool setData3D(const void* data, int width, int height, int depth);
 
 signals:
-    void dimensionsChanged();
+    void dataimensionsChanged();
+    void dataSizeChanged();
     void dataChanged();
 
 protected:
