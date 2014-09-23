@@ -7,8 +7,8 @@
 class SlicePlotMaterial : public QSGMaterial
 {
 public:
-    QSGMaterialType *type() const { static QSGMaterialType type; return &type; }
-    QSGMaterialShader *createShader() const;
+    SlicePlotMaterial(bool filled) : QSGMaterial(), m_filled(filled) {}
+    virtual ~SlicePlotMaterial() {}
     QSGTexture* m_texture_data;
     double m_width;
     double m_height;
@@ -17,40 +17,34 @@ public:
     QPointF m_p1;
     QPointF m_p2;
     QColor m_color;
+    const bool m_filled;
+};
+
+class SliceLinePlotMaterial : public SlicePlotMaterial
+{
+public:
+    SliceLinePlotMaterial() : SlicePlotMaterial(false) {}
+    virtual ~SliceLinePlotMaterial() {}
+    QSGMaterialType *type() const { static QSGMaterialType type; return &type; }
+    QSGMaterialShader *createShader() const;
+};
+
+class SliceFillPlotMaterial : public SlicePlotMaterial
+{
+public:
+    SliceFillPlotMaterial() : SlicePlotMaterial(true) {
+        setFlag(QSGMaterial::Blending);
+    }
+    virtual ~SliceFillPlotMaterial() {}
+    QSGMaterialType *type() const { static QSGMaterialType type; return &type; }
+    QSGMaterialShader *createShader() const;
 };
 
 class SlicePlotShader : public QSGMaterialShader
 {
 public:
-    const char *vertexShader() const {
-        return
-        "uniform sampler2D data;                                   \n"
-        "attribute highp vec2 vertex;                              \n"
-        "uniform highp float width;                                \n"
-        "uniform highp float height;                               \n"
-        "uniform highp float amplitude;                            \n"
-        "uniform highp float offset;                               \n"
-        "uniform highp vec2 p1;                                    \n"
-        "uniform highp vec2 p2;                                    \n"
-        "uniform highp mat4 matrix;                                \n"
-        "                                                          \n"
-        "void main() {                                             \n"
-        "    highp vec2 pos = (1.-vertex.x)*p1 + vertex.x*p2;      \n"
-        "    highp float val = texture2D(data, pos).r;             \n"
-        "    highp float yval = amplitude * (val+offset);          \n"
-        "    gl_Position = matrix * vec4(width * vertex.x, height * yval, 0., 1.);  \n"
-        "}";
-    }
-
-    const char *fragmentShader() const {
-        return
-        "uniform sampler2D data;                       \n"
-        "uniform lowp float opacity;                   \n"
-        "uniform mediump vec4 color;                   \n"
-        "void main() {                                 \n"
-        "    gl_FragColor = color * opacity;           \n"
-        "}";
-    }
+    SlicePlotShader() : QSGMaterialShader() {}
+    virtual ~SlicePlotShader() {}
 
     char const *const *attributeNames() const
     {
@@ -79,7 +73,7 @@ public:
     void updateState(const RenderState &state, QSGMaterial *newMaterial, QSGMaterial *)
     {
         Q_ASSERT(program()->isLinked());
-        SlicePlotMaterial* material = static_cast<SlicePlotMaterial*>(newMaterial);
+        SliceLinePlotMaterial* material = static_cast<SliceLinePlotMaterial*>(newMaterial);
 
         if (state.isMatrixDirty())
             program()->setUniformValue(m_id_matrix, state.combinedMatrix());
@@ -103,7 +97,7 @@ public:
     void deactivate() {
     }
 
-private:
+protected:
     int m_id_matrix;
     int m_id_opacity;
     int m_id_color;
@@ -116,8 +110,92 @@ private:
     int m_id_p2;
 };
 
+class SliceLinePlotShader : public SlicePlotShader
+{
+public:
+    SliceLinePlotShader() : SlicePlotShader() {}
+    virtual ~SliceLinePlotShader() {}
 
-inline QSGMaterialShader* SlicePlotMaterial::createShader() const { return new SlicePlotShader; }
+    const char *vertexShader() const {
+        return
+        "uniform sampler2D data;                                   \n"
+        "attribute highp vec2 vertex;                              \n"
+        "uniform highp float width;                                \n"
+        "uniform highp float height;                               \n"
+        "uniform highp float amplitude;                            \n"
+        "uniform highp float offset;                               \n"
+        "uniform highp vec2 p1;                                    \n"
+        "uniform highp vec2 p2;                                    \n"
+        "uniform highp mat4 matrix;                                \n"
+        "                                                          \n"
+        "void main() {                                             \n"
+        "    highp vec2 pos = (1.-vertex.x)*p1 + vertex.x*p2;      \n"
+        "    highp float val = texture2D(data, pos).r;             \n"
+        "    highp float yval = amplitude * (val+offset);          \n"
+        "    gl_Position = matrix * vec4(width * vertex.x, height * (1.-yval), 0., 1.);  \n"
+        "}";
+    }
+
+    const char *fragmentShader() const {
+        return
+        "uniform sampler2D data;                       \n"
+        "uniform lowp float opacity;                   \n"
+        "uniform mediump vec4 color;                   \n"
+        "void main() {                                 \n"
+        "    gl_FragColor = color * opacity;           \n"
+        "}";
+    }
+};
+
+class SliceFillPlotShader : public SlicePlotShader
+{
+public:
+    SliceFillPlotShader() : SlicePlotShader() {}
+    virtual ~SliceFillPlotShader() {}
+
+    const char *vertexShader() const {
+        return
+        "uniform sampler2D data;                                   \n"
+        "attribute highp vec2 vertex;                              \n"
+        "uniform highp float width;                                \n"
+        "uniform highp float height;                               \n"
+        "uniform highp vec2 p1;                                    \n"
+        "uniform highp vec2 p2;                                    \n"
+        "uniform highp mat4 matrix;                                \n"
+        "varying highp vec2 pos;                                   \n"
+        "varying highp vec2 coord;                                 \n"
+        "                                                          \n"
+        "void main() {                                             \n"
+        "    coord = (1.-vertex.x)*p1 + vertex.x*p2;               \n"
+        "    pos = vec2(vertex.x, 1.-vertex.y);                    \n"
+        "    gl_Position = matrix * vec4(width * vertex.x, height * vertex.y, 0., 1.);  \n"
+        "}";
+    }
+
+    const char *fragmentShader() const {
+        return
+        "uniform sampler2D data;                       \n"
+        "uniform lowp float opacity;                   \n"
+        "uniform highp float amplitude;                \n"
+        "uniform highp float offset;                   \n"
+        "uniform mediump vec4 color;                   \n"
+        "varying highp vec2 pos;                       \n"
+        "varying highp vec2 coord;                     \n"
+        "                                              \n"
+        "void main() {                                 \n"
+        "    highp float pos_y = pos.y - amplitude*offset;               \n"
+        "    highp float y_val = amplitude * texture2D(data, coord).r;   \n"
+        "    highp float dist_above_curve = sign(y_val) * (pos_y-y_val); \n"
+        "    float below_curve = float(dist_above_curve < 0.);           \n"
+        "    float above_zero = float(sign(y_val) * pos_y >= 0.);        \n"
+        "    float fill = below_curve * above_zero;                      \n"
+        "    gl_FragColor = color * fill * opacity;                      \n"
+        "}";
+    }
+};
+
+inline QSGMaterialShader* SliceLinePlotMaterial::createShader() const { return new SliceLinePlotShader; }
+inline QSGMaterialShader* SliceFillPlotMaterial::createShader() const { return new SliceFillPlotShader; }
 
 // ----------------------------------------------------------------------------
 
@@ -126,7 +204,7 @@ SlicePlot::SlicePlot(QQuickItem *parent) :
     DataClient(parent),
     m_min_value(0.), m_max_value(1.), m_num_segments(20),
     m_p1(0., 0.), m_p2(1., 1.),
-    m_color(Qt::red)
+    m_color(Qt::red), m_filled(false)
 {
     setFlag(QQuickItem::ItemHasContents);
     setClip(true);
@@ -186,6 +264,14 @@ void SlicePlot::setColor(const QColor &color)
     update();
 }
 
+void SlicePlot::setFilled(bool filled)
+{
+    if (m_filled == filled) return;
+    m_filled = filled;
+    emit filledChanged(m_filled);
+    update();
+}
+
 QSGNode *SlicePlot::updatePaintNode(QSGNode *node, QQuickItem::UpdatePaintNodeData *)
 {
     QSGGeometryNode* n = static_cast<QSGGeometryNode*>(node);
@@ -201,15 +287,21 @@ QSGNode *SlicePlot::updatePaintNode(QSGNode *node, QQuickItem::UpdatePaintNodeDa
     if  (!n && m_source) {
         // create a node if there is a data source
         n = new QSGGeometryNode();
-        // inintialize geometry
-        geometry = new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), 0);
-        geometry->setDrawingMode(GL_LINE_STRIP);
-        geometry->setLineWidth(1.);
+        // inintialize geometry & material
+        if (m_filled) {
+            geometry = new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), 0);
+            geometry->setDrawingMode(GL_TRIANGLE_STRIP);
+            material = new SliceFillPlotMaterial;
+            material->m_texture_data = m_source->textureProvider()->texture();
+        } else {
+            geometry = new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), 0);
+            geometry->setDrawingMode(GL_LINE_STRIP);
+            geometry->setLineWidth(1);
+            material = new SliceLinePlotMaterial;
+            material->m_texture_data = m_source->textureProvider()->texture();
+        }
         n->setGeometry(geometry);
         n->setFlag(QSGNode::OwnsGeometry);
-        // initialize material
-        material = new SlicePlotMaterial;
-        material->m_texture_data = m_source->textureProvider()->texture();
         n->setMaterial(material);
         n->setFlag(QSGNode::OwnsMaterial);
     }
@@ -225,26 +317,56 @@ QSGNode *SlicePlot::updatePaintNode(QSGNode *node, QQuickItem::UpdatePaintNodeDa
     material = static_cast<SlicePlotMaterial*>(n->material());
     QSGNode::DirtyState dirty_state = QSGNode::DirtyMaterial;
 
+    // check if the filled parameter was changed, switch material if necessary
+    if (m_filled != material->m_filled) {
+        if (m_filled) {
+            geometry->allocate(0);
+            geometry->setDrawingMode(GL_TRIANGLE_STRIP);
+            material = new SliceFillPlotMaterial;
+            material->m_texture_data = m_source->textureProvider()->texture();
+        } else {
+            geometry->allocate(0);
+            geometry->setDrawingMode(GL_LINE_STRIP);
+            geometry->setLineWidth(1.);
+            material = new SliceLinePlotMaterial;
+            material->m_texture_data = m_source->textureProvider()->texture();
+        }
+        n->setMaterial(material);
+    }
+
     // update material parameters
-    double scale_val = 1. / (m_max_value - m_min_value);
-    double off_val = -m_min_value;
     material->m_width = width();
     material->m_height = height();
-    material->m_amplitude = - scale_val;
-    material->m_offset = off_val - 1./scale_val;
+
+    //material->m_amplitude = - scale_val;
+    //material->m_offset = off_val - 1./scale_val;
+    material->m_amplitude = 1. / (m_max_value - m_min_value);
+    material->m_offset = -m_min_value;
+
     material->m_p1 = m_p1;
     material->m_p2 = m_p2;
     material->m_color = m_color;
 
     // update geometry if the number of segments changed
-    if (geometry->vertexCount() != (m_num_segments+1)) {
-        geometry->allocate(m_num_segments+1);
-        float* data = static_cast<float*>(geometry->vertexData());
-        for (int i = 0; i <= m_num_segments; ++i) {
-            double f = i * (1./m_num_segments);
-            data[2*i] = f;
+    if (m_filled) {
+        if (geometry->vertexCount() != 4) {
+            geometry->allocate(4);
+            geometry->vertexDataAsPoint2D()[0].set(0, 0);
+            geometry->vertexDataAsPoint2D()[1].set(0, 1);
+            geometry->vertexDataAsPoint2D()[2].set(1, 0);
+            geometry->vertexDataAsPoint2D()[3].set(1, 1);
+            dirty_state |= QSGNode::DirtyGeometry;
         }
-        dirty_state |= QSGNode::DirtyGeometry;
+    } else {
+        if (geometry->vertexCount() != (m_num_segments+1)) {
+            geometry->allocate(m_num_segments+1);
+            float* data = static_cast<float*>(geometry->vertexData());
+            for (int i = 0; i <= m_num_segments; ++i) {
+                double f = i * (1./m_num_segments);
+                data[2*i] = f;
+            }
+            dirty_state |= QSGNode::DirtyGeometry;
+        }
     }
 
     // check for data source change

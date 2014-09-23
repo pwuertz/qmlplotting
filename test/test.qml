@@ -203,20 +203,21 @@ ApplicationWindow {
                 anchors.fill: parent
                 anchors.margins: 1
                 dataSource: source
-                color: "red"
-                numSegments: 30
+                color: "#99666666"
+                numSegments: parent.width
                 minimumValue: min_slider.value
                 maximumValue: max_slider.value
                 p1: scanline.p1
                 p2: scanline.p2
+                filled: true
             }
             SlicePlot {
                 id: plot2
                 anchors.fill: parent
                 anchors.margins: 1
                 dataSource: source
-                color: "black"
-                numSegments: 200
+                color: "#ff666666"
+                numSegments: parent.width
                 minimumValue: min_slider.value
                 maximumValue: max_slider.value
                 p1: scanline.p1

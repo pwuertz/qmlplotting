@@ -13,6 +13,7 @@ class SlicePlot : public DataClient
     Q_PROPERTY(QPointF p1 READ p1 WRITE setP1 NOTIFY p1Changed)
     Q_PROPERTY(QPointF p2 READ p2 WRITE setP2 NOTIFY p2Changed)
     Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
+    Q_PROPERTY(bool filled MEMBER m_filled WRITE setFilled NOTIFY filledChanged)
 
 public:
     explicit SlicePlot(QQuickItem *parent = 0);
@@ -31,6 +32,7 @@ public:
     void setP1(const QPointF& p);
     void setP2(const QPointF& p);
     void setColor(const QColor& color);
+    void setFilled(bool filled);
 
 signals:
     void minimumValueChanged(double);
@@ -39,6 +41,7 @@ signals:
     void p1Changed(const QPointF&);
     void p2Changed(const QPointF&);
     void colorChanged(const QColor& color);
+    void filledChanged(bool);
 
 protected:
     virtual QSGNode* updatePaintNode(QSGNode *, UpdatePaintNodeData *);
@@ -50,6 +53,7 @@ private:
     QPointF m_p1;
     QPointF m_p2;
     QColor m_color;
+    bool m_filled;
 };
 
 #endif // LINEPLOT_H
