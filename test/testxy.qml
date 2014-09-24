@@ -57,9 +57,10 @@ Rectangle {
             xMin: min_slider.value
             xMax: max_slider.value
             yMax: 1.1
-            markerColor: "#3333cc"
+            lineWidth: 3.
+            lineColor: "#7777cc"
+            markerColor: "#553333cc"
             markerSize: 10
-            opacity: .5
         }
     }
 
