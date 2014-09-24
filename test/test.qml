@@ -2,9 +2,12 @@ import QtQuick 2.0
 import QtQuick.Controls 1.1
 import qmlplotting 1.0
 
-ApplicationWindow {
-    title: "QML Plotting Example"
+Item {
     width: 640; height: 512
+
+    function getItems() {
+        return [source, image, selection_user]
+    }
 
     DataSource {
         id: source
