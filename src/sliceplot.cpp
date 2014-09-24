@@ -3,6 +3,7 @@
 #include <QSGGeometryNode>
 #include <QSGFlatColorMaterial>
 
+#define GLSL(src) "#version 150 core\n" #src
 
 class SlicePlotMaterial : public QSGMaterial
 {
@@ -117,33 +118,37 @@ public:
     virtual ~SliceLinePlotShader() {}
 
     const char *vertexShader() const {
-        return
-        "uniform sampler2D data;                                   \n"
-        "attribute highp vec2 vertex;                              \n"
-        "uniform highp float width;                                \n"
-        "uniform highp float height;                               \n"
-        "uniform highp float amplitude;                            \n"
-        "uniform highp float offset;                               \n"
-        "uniform highp vec2 p1;                                    \n"
-        "uniform highp vec2 p2;                                    \n"
-        "uniform highp mat4 matrix;                                \n"
-        "                                                          \n"
-        "void main() {                                             \n"
-        "    highp vec2 pos = (1.-vertex.x)*p1 + vertex.x*p2;      \n"
-        "    highp float val = texture2D(data, pos).r;             \n"
-        "    highp float yval = amplitude * (val+offset);          \n"
-        "    gl_Position = matrix * vec4(width * vertex.x, height * (1.-yval), 0., 1.);  \n"
-        "}";
+        return GLSL(
+            uniform sampler2D data;
+            attribute highp vec2 vertex;
+            uniform highp float width;
+            uniform highp float height;
+            uniform highp float amplitude;
+            uniform highp float offset;
+            uniform highp vec2 p1;
+            uniform highp vec2 p2;
+            uniform highp mat4 matrix;
+
+            void main() {
+                highp vec2 pos = (1.-vertex.x)*p1 + vertex.x*p2;
+                highp float val = texture(data, pos).r;
+                highp float yval = amplitude * (val+offset);
+                gl_Position = matrix * vec4(width * vertex.x, height * (1.-yval), 0., 1.);
+            }
+        );
     }
 
     const char *fragmentShader() const {
-        return
-        "uniform sampler2D data;                       \n"
-        "uniform lowp float opacity;                   \n"
-        "uniform mediump vec4 color;                   \n"
-        "void main() {                                 \n"
-        "    gl_FragColor = color * opacity;           \n"
-        "}";
+        return GLSL(
+            uniform sampler2D data;
+            uniform lowp float opacity;
+            uniform mediump vec4 color;
+            void main() {
+                lowp float o = opacity * color.a;
+                gl_FragColor.rgb = color.rgb * o;
+                gl_FragColor.a = o;
+            }
+        );
     }
 };
 
@@ -154,43 +159,45 @@ public:
     virtual ~SliceFillPlotShader() {}
 
     const char *vertexShader() const {
-        return
-        "uniform sampler2D data;                                   \n"
-        "attribute highp vec2 vertex;                              \n"
-        "uniform highp float width;                                \n"
-        "uniform highp float height;                               \n"
-        "uniform highp vec2 p1;                                    \n"
-        "uniform highp vec2 p2;                                    \n"
-        "uniform highp mat4 matrix;                                \n"
-        "varying highp vec2 pos;                                   \n"
-        "varying highp vec2 coord;                                 \n"
-        "                                                          \n"
-        "void main() {                                             \n"
-        "    coord = (1.-vertex.x)*p1 + vertex.x*p2;               \n"
-        "    pos = vec2(vertex.x, 1.-vertex.y);                    \n"
-        "    gl_Position = matrix * vec4(width * vertex.x, height * vertex.y, 0., 1.);  \n"
-        "}";
+        return GLSL(
+            uniform sampler2D data;
+            attribute highp vec2 vertex;
+            uniform highp float width;
+            uniform highp float height;
+            uniform highp vec2 p1;
+            uniform highp vec2 p2;
+            uniform highp mat4 matrix;
+            varying highp vec2 pos;
+            varying highp vec2 coord;
+
+            void main() {
+                coord = (1.-vertex.x)*p1 + vertex.x*p2;
+                pos = vec2(vertex.x, 1.-vertex.y);
+                gl_Position = matrix * vec4(width * vertex.x, height * vertex.y, 0., 1.);
+            }
+        );
     }
 
     const char *fragmentShader() const {
-        return
-        "uniform sampler2D data;                       \n"
-        "uniform lowp float opacity;                   \n"
-        "uniform highp float amplitude;                \n"
-        "uniform highp float offset;                   \n"
-        "uniform mediump vec4 color;                   \n"
-        "varying highp vec2 pos;                       \n"
-        "varying highp vec2 coord;                     \n"
-        "                                              \n"
-        "void main() {                                 \n"
-        "    highp float pos_y = pos.y - amplitude*offset;               \n"
-        "    highp float y_val = amplitude * texture2D(data, coord).r;   \n"
-        "    highp float dist_above_curve = sign(y_val) * (pos_y-y_val); \n"
-        "    float below_curve = float(dist_above_curve < 0.);           \n"
-        "    float above_zero = float(sign(y_val) * pos_y >= 0.);        \n"
-        "    float fill = below_curve * above_zero;                      \n"
-        "    gl_FragColor = color * fill * opacity;                      \n"
-        "}";
+            return GLSL(
+            uniform sampler2D data;
+            uniform lowp float opacity;
+            uniform highp float amplitude;
+            uniform highp float offset;
+            uniform mediump vec4 color;
+            varying highp vec2 pos;
+            varying highp vec2 coord;
+
+            void main() {
+                highp float pos_y = pos.y - amplitude*offset;
+                highp float y_val = amplitude * texture(data, coord).r;
+                highp float dist_above_curve = sign(y_val) * (pos_y-y_val);
+                float below_curve = float(dist_above_curve < 0.);
+                float above_zero = float(sign(y_val) * pos_y >= 0.);
+                float fill = below_curve * above_zero;
+                gl_FragColor = color * fill * opacity;
+            }
+        );
     }
 };
 

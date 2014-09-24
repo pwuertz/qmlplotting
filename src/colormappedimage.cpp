@@ -9,6 +9,8 @@
 #include <QStringList>
 #include "qsgfloattexture.h"
 
+#define GLSL(src) "#version 150 core\n" #src
+
 // ----------------------------------------------------------------------------
 
 static double cmap_wjet[] = {
@@ -96,33 +98,37 @@ class QSQColormapShader : public QSGMaterialShader
 {
 public:
     const char *vertexShader() const {
-        return
-        "attribute highp vec4 vertex;          \n"
-        "attribute highp vec2 texcoord;        \n"
-        "uniform highp mat4 matrix;            \n"
-        "varying highp vec2 coord;             \n"
-        "                                      \n"
-        "void main() {                         \n"
-        "    coord = texcoord;                 \n"
-        "    gl_Position = matrix * vertex;    \n"
-        "}";
+        return GLSL(
+            attribute highp vec4 vertex;
+            attribute highp vec2 texcoord;
+            uniform highp mat4 matrix;
+            varying highp vec2 coord;
+
+            void main() {
+                coord = texcoord;
+                gl_Position = matrix * vertex;
+            }
+        );
     }
 
     const char *fragmentShader() const {
-        return
-        "uniform sampler2D image;                                \n"
-        "uniform sampler1D cmap;                                 \n"
-        "uniform highp float amplitude;                          \n"
-        "uniform highp float offset;                             \n"
-        "varying highp vec2 coord;                               \n"
-        "uniform lowp float opacity;                             \n"
-        "void main() {                                           \n"
-        "    bool ok = coord.s > 0. && coord.s < 1. && coord.t > 0. && coord.t < 1.; \n"
-        "    highp float val = texture2D(image, coord.st).r;     \n"
-        "    val = amplitude * (val + offset);                   \n"
-        "    vec4 color = texture1D(cmap, val);                  \n"
-        "    gl_FragColor = color * opacity * float(ok);         \n"
-        "}";
+        return GLSL(
+            uniform sampler1D cmap;
+            uniform sampler2D image;
+            uniform highp float amplitude;
+            uniform highp float offset;
+            varying highp vec2 coord;
+            uniform lowp float opacity;
+            void main() {
+                bool ok = coord.s > 0. && coord.s < 1. && coord.t > 0. && coord.t < 1.;
+                highp float val = texture(image, coord.st).r;
+                val = amplitude * (val + offset);
+                vec4 color = texture(cmap, val);
+                lowp float o = opacity * color.a * float(ok);
+                gl_FragColor.rgb = color.rgb * o;
+                gl_FragColor.a = o;
+            }
+        );
     }
 
     char const *const *attributeNames() const
