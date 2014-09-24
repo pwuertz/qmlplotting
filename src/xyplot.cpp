@@ -3,7 +3,7 @@
 #include <QSGGeometryNode>
 #include <QSGFlatColorMaterial>
 
-#define GLSL(src) "#version 150 core\n" #src
+#define GLSL(ver, src) "#version " #ver "\n" #src
 
 
 class XYMarkerMaterial : public QSGMaterial
@@ -23,7 +23,7 @@ class XYMarkerMaterialShader : public QSGMaterialShader
 {
 public:
     const char *vertexShader() const {
-        return GLSL(
+        return GLSL(130,
             attribute highp vec4 vertex;
             uniform highp mat4 matrix;
             uniform highp vec2 size;
@@ -38,7 +38,7 @@ public:
     }
 
     const char *geometryShader() const {
-        return GLSL(
+        return GLSL(150 core,
             layout(points) in;
             layout(triangle_strip, max_vertices = 60) out;
             const float PI = 3.1415926;
@@ -64,13 +64,15 @@ public:
     }
 
     const char *fragmentShader() const {
-        return GLSL(
+        return GLSL(130,
             uniform lowp vec4 mcolor;
             uniform lowp float opacity;
+            out vec4 fragColor;
+
             void main() {
                 lowp float o = opacity * mcolor.a;
-                gl_FragColor.rgb = mcolor.rgb * o;
-                gl_FragColor.a = o;
+                fragColor.rgb = mcolor.rgb * o;
+                fragColor.a = o;
             }
         );
     }
@@ -85,8 +87,12 @@ public:
     {
         QSGMaterialShader::initialize();
         QOpenGLShaderProgram* p = program();
-        p->addShaderFromSourceCode(QOpenGLShader::Geometry, geometryShader());
-        p->link();
+
+        if (QOpenGLShader::hasOpenGLShaders(QOpenGLShader::Geometry)) {
+            p->addShaderFromSourceCode(QOpenGLShader::Geometry, geometryShader());
+            p->link();
+        }
+        // TODO: backup solution for OpenGL version < 3.2
 
         m_id_matrix = p->uniformLocation("matrix");
         m_id_opacity = p->uniformLocation("opacity");

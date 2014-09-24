@@ -3,7 +3,7 @@
 #include <QSGGeometryNode>
 #include <QSGFlatColorMaterial>
 
-#define GLSL(src) "#version 150 core\n" #src
+#define GLSL(ver, src) "#version " #ver "\n" #src
 
 class SlicePlotMaterial : public QSGMaterial
 {
@@ -118,9 +118,9 @@ public:
     virtual ~SliceLinePlotShader() {}
 
     const char *vertexShader() const {
-        return GLSL(
-            uniform sampler2D data;
+        return GLSL(130,
             attribute highp vec2 vertex;
+            uniform sampler2D data;
             uniform highp float width;
             uniform highp float height;
             uniform highp float amplitude;
@@ -139,14 +139,16 @@ public:
     }
 
     const char *fragmentShader() const {
-        return GLSL(
+        return GLSL(130,
             uniform sampler2D data;
             uniform lowp float opacity;
             uniform mediump vec4 color;
+            out vec4 fragColor;
+
             void main() {
                 lowp float o = opacity * color.a;
-                gl_FragColor.rgb = color.rgb * o;
-                gl_FragColor.a = o;
+                fragColor.rgb = color.rgb * o;
+                fragColor.a = o;
             }
         );
     }
@@ -159,16 +161,16 @@ public:
     virtual ~SliceFillPlotShader() {}
 
     const char *vertexShader() const {
-        return GLSL(
-            uniform sampler2D data;
+        return GLSL(130,
             attribute highp vec2 vertex;
+            uniform sampler2D data;
             uniform highp float width;
             uniform highp float height;
             uniform highp vec2 p1;
             uniform highp vec2 p2;
             uniform highp mat4 matrix;
-            varying highp vec2 pos;
-            varying highp vec2 coord;
+            out highp vec2 pos;
+            out highp vec2 coord;
 
             void main() {
                 coord = (1.-vertex.x)*p1 + vertex.x*p2;
@@ -179,14 +181,15 @@ public:
     }
 
     const char *fragmentShader() const {
-            return GLSL(
+        return GLSL(130,
             uniform sampler2D data;
             uniform lowp float opacity;
             uniform highp float amplitude;
             uniform highp float offset;
             uniform mediump vec4 color;
-            varying highp vec2 pos;
-            varying highp vec2 coord;
+            in highp vec2 pos;
+            in highp vec2 coord;
+            out vec4 fragColor;
 
             void main() {
                 highp float pos_y = pos.y - amplitude*offset;
@@ -195,7 +198,9 @@ public:
                 float below_curve = float(dist_above_curve < 0.);
                 float above_zero = float(sign(y_val) * pos_y >= 0.);
                 float fill = below_curve * above_zero;
-                gl_FragColor = color * fill * opacity;
+                lowp float o = opacity * color.a * fill;
+                fragColor.rgb = color.rgb * o;
+                fragColor.a = o;
             }
         );
     }

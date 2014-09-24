@@ -9,7 +9,7 @@
 #include <QStringList>
 #include "qsgfloattexture.h"
 
-#define GLSL(src) "#version 150 core\n" #src
+#define GLSL(ver, src) "#version " #ver "\n" #src
 
 // ----------------------------------------------------------------------------
 
@@ -98,11 +98,11 @@ class QSQColormapShader : public QSGMaterialShader
 {
 public:
     const char *vertexShader() const {
-        return GLSL(
+        return GLSL(130,
             attribute highp vec4 vertex;
             attribute highp vec2 texcoord;
             uniform highp mat4 matrix;
-            varying highp vec2 coord;
+            out highp vec2 coord;
 
             void main() {
                 coord = texcoord;
@@ -112,21 +112,23 @@ public:
     }
 
     const char *fragmentShader() const {
-        return GLSL(
+        return GLSL(130,
             uniform sampler1D cmap;
             uniform sampler2D image;
             uniform highp float amplitude;
             uniform highp float offset;
-            varying highp vec2 coord;
             uniform lowp float opacity;
+            in highp vec2 coord;
+            out vec4 fragColor;
+
             void main() {
-                bool ok = coord.s > 0. && coord.s < 1. && coord.t > 0. && coord.t < 1.;
+                bool inside = coord.s > 0. && coord.s < 1. && coord.t > 0. && coord.t < 1.;
                 highp float val = texture(image, coord.st).r;
                 val = amplitude * (val + offset);
                 vec4 color = texture(cmap, val);
-                lowp float o = opacity * color.a * float(ok);
-                gl_FragColor.rgb = color.rgb * o;
-                gl_FragColor.a = o;
+                lowp float o = opacity * color.a * float(inside);
+                fragColor.rgb = color.rgb * o;
+                fragColor.a = o;
             }
         );
     }
