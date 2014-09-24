@@ -13,7 +13,8 @@ SOURCES += \
     src/qsgfloattexture.cpp \
     src/dataclient.cpp \
     src/sliceplot.cpp \
-    src/datasource.cpp
+    src/datasource.cpp \
+    src/xyplot.cpp
 
 HEADERS += \
     src/qmlplotting_plugin.h \
@@ -21,7 +22,8 @@ HEADERS += \
     src/qsgfloattexture.h \
     src/dataclient.h \
     src/sliceplot.h \
-    src/datasource.h
+    src/datasource.h \
+    src/xyplot.h
 
 OTHER_FILES = qmldir \
     ZoomPanImage.qml \

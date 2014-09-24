@@ -171,13 +171,14 @@ bool DataSource::ownsData()
 bool DataSource::setTestData1D()
 {
     int size = 512;
-    double* d = (double *) allocateData1D(size);
+    double* d = (double *) allocateData1D(2*size);
 
     // gauss + noise
     for (int ix = 0; ix < size; ++ix) {
         double x = -1. + 2.*(ix * (1./size));
         double r = rand() * (1./RAND_MAX);
-        d[ix] = exp(-(x*x)*2.) + .2 * (r-.5);
+        d[2*ix+0] = x;
+        d[2*ix+1] = exp(-(x*x)*5.) * (1. + .2 * (r-.5));
     }
     return true;
 }
