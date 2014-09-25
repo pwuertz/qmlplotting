@@ -233,8 +233,10 @@ XYPlot::XYPlot(QQuickItem *parent) :
     DataClient(parent),
     m_xmin(0.), m_xmax(1.),
     m_ymin(0.), m_ymax(1.),
+    m_line(true),
     m_linewidth(1.),
     m_linecolor(0., 0., 0.),
+    m_marker(true),
     m_markersegments(8),
     m_markersize(5.),
     m_markercolor(0., 0., 0.)
@@ -275,6 +277,14 @@ void XYPlot::setYMax(double value)
     update();
 }
 
+void XYPlot::setLineEnabled(bool enabled)
+{
+    if (m_line == enabled) return;
+    m_line = enabled;
+    emit lineEnabledChanged(m_line);
+    update();
+}
+
 void XYPlot::setLineWidth(double width)
 {
     if (m_linewidth == width) return;
@@ -288,6 +298,14 @@ void XYPlot::setLineColor(const QColor &color)
     if (m_linecolor == color) return;
     m_linecolor = color;
     emit lineColorChanged(m_linecolor);
+    update();
+}
+
+void XYPlot::setMarkerEnabled(bool enabled)
+{
+    if (m_marker == enabled) return;
+    m_marker = enabled;
+    emit lineEnabledChanged(m_marker);
     update();
 }
 
@@ -315,10 +333,51 @@ void XYPlot::setMarkerColor(const QColor &color)
     update();
 }
 
+
+class LineNode : public QSGGeometryNode
+{
+public:
+    LineNode() : QSGGeometryNode() {
+        QSGGeometry* geometry;
+        geometry = new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), 0);
+        geometry->setDrawingMode(GL_LINE_STRIP);
+        QSGMaterial* material;
+        material = new XYLineMaterial;
+        setGeometry(geometry);
+        setFlag(QSGNode::OwnsGeometry);
+        setMaterial(material);
+        setFlag(QSGNode::OwnsMaterial);
+    }
+    virtual ~LineNode() {}
+    virtual bool isSubtreeBlocked() const {return m_blocked;}
+    bool m_blocked;
+};
+
+
+class MarkerNode : public QSGGeometryNode
+{
+public:
+    MarkerNode() : QSGGeometryNode() {
+        QSGGeometry* geometry;
+        geometry = new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), 0);
+        geometry->setDrawingMode(GL_POINTS);
+        QSGMaterial* material;
+        material = new XYMarkerMaterial;
+        setGeometry(geometry);
+        setFlag(QSGNode::OwnsGeometry);
+        setMaterial(material);
+        setFlag(QSGNode::OwnsMaterial);
+    }
+    virtual ~MarkerNode() {}
+    virtual bool isSubtreeBlocked() const {return m_blocked;}
+    bool m_blocked;
+};
+
+
 QSGNode *XYPlot::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNodeData *)
 {
-    QSGGeometryNode* n_line;
-    QSGGeometryNode* n_marker;
+    LineNode* n_line;
+    MarkerNode* n_marker;
     QSGGeometry *mgeometry;
     XYMarkerMaterial *mmaterial;
     QSGGeometry *lgeometry;
@@ -333,27 +392,9 @@ QSGNode *XYPlot::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNodeData *)
     if  (!n && m_source) {
         // create a base node if there is a data source
         n = new QSGNode;
-
-        // create child nodes for line and markers
-        n_line = new QSGGeometryNode;
-        lgeometry = new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), 0);
-        lgeometry->setDrawingMode(GL_LINE_STRIP);
-        lmaterial = new XYLineMaterial;
-        n_line->setGeometry(lgeometry);
-        n_line->setFlag(QSGNode::OwnsGeometry);
-        n_line->setMaterial(lmaterial);
-        n_line->setFlag(QSGNode::OwnsMaterial);
-
-        n_marker = new QSGGeometryNode;
-        mgeometry = new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), 0);
-        mgeometry->setDrawingMode(GL_POINTS);
-        mmaterial = new XYMarkerMaterial;
-        n_marker->setGeometry(mgeometry);
-        n_marker->setFlag(QSGNode::OwnsGeometry);
-        n_marker->setMaterial(mmaterial);
-        n_marker->setFlag(QSGNode::OwnsMaterial);
-
-        // append child nodes
+        // append child nodes for line and markers
+        n_line = new LineNode;
+        n_marker = new MarkerNode;
         n_line->setFlag(QSGNode::OwnedByParent);
         n_marker->setFlag(QSGNode::OwnedByParent);
         n->appendChildNode(n_line);
@@ -367,8 +408,8 @@ QSGNode *XYPlot::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNodeData *)
 
     // ** graph node and data source can be considered valid from here on **
 
-    n_line = static_cast<QSGGeometryNode*>(n->firstChild());
-    n_marker = static_cast<QSGGeometryNode*>(n->lastChild());
+    n_line = static_cast<LineNode*>(n->firstChild());
+    n_marker = static_cast<MarkerNode*>(n->lastChild());
     lgeometry = n_line->geometry();
     mgeometry = n_marker->geometry();
     lmaterial = static_cast<XYLineMaterial*>(n_line->material());
@@ -376,35 +417,47 @@ QSGNode *XYPlot::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNodeData *)
 
     QSGNode::DirtyState dirty_state = QSGNode::DirtyMaterial;
 
-    // update line material parameters
-    lmaterial->m_size.setWidth(width());
-    lmaterial->m_size.setHeight(height());
-    lmaterial->m_scale.setWidth(1. / (m_xmax - m_xmin));
-    lmaterial->m_scale.setHeight(1. / (m_ymax - m_ymin));
-    lmaterial->m_offset.setX(m_xmin);
-    lmaterial->m_offset.setY(m_ymin);
-    lmaterial->m_color = m_linecolor;
-    lmaterial->setFlag(QSGMaterial::Blending, m_linecolor.alphaF() != 1.);
-    lgeometry->setLineWidth(m_linewidth);
+    n_line->m_blocked = !m_line;
+    n_marker->m_blocked = !m_marker;
+    int num_data_points = m_source->dataWidth() / 2;
 
-    // update marker material parameters
-    mmaterial->m_size.setWidth(width());
-    mmaterial->m_size.setHeight(height());
-    mmaterial->m_scale.setWidth(1. / (m_xmax - m_xmin));
-    mmaterial->m_scale.setHeight(1. / (m_ymax - m_ymin));
-    mmaterial->m_offset.setX(m_xmin);
-    mmaterial->m_offset.setY(m_ymin);
-    mmaterial->m_markersegments = m_markersegments;
-    mmaterial->m_markercolor = m_markercolor;
-    mmaterial->m_markersize = m_markersize;
-    mmaterial->setFlag(QSGMaterial::Blending, m_markercolor.alphaF() != 1.);
+    if (m_line) {
+        // update line material parameters
+        lmaterial->m_size.setWidth(width());
+        lmaterial->m_size.setHeight(height());
+        lmaterial->m_scale.setWidth(1. / (m_xmax - m_xmin));
+        lmaterial->m_scale.setHeight(1. / (m_ymax - m_ymin));
+        lmaterial->m_offset.setX(m_xmin);
+        lmaterial->m_offset.setY(m_ymin);
+        lmaterial->m_color = m_linecolor;
+        lmaterial->setFlag(QSGMaterial::Blending, m_linecolor.alphaF() != 1.);
+        lgeometry->setLineWidth(m_linewidth);
 
-    // reallocate geometry if number of points changed
-    int num_points = m_source->dataWidth() / 2;
-    if (mgeometry->vertexCount() != num_points) {
-        mgeometry->allocate(num_points);
-        lgeometry->allocate(num_points);
-        m_new_data = true;
+        // reallocate geometry if number of points changed
+        if (lgeometry->vertexCount() != num_data_points) {
+            lgeometry->allocate(num_data_points);
+            m_new_data = true;
+        }
+    }
+
+    if (m_marker) {
+        // update marker material parameters
+        mmaterial->m_size.setWidth(width());
+        mmaterial->m_size.setHeight(height());
+        mmaterial->m_scale.setWidth(1. / (m_xmax - m_xmin));
+        mmaterial->m_scale.setHeight(1. / (m_ymax - m_ymin));
+        mmaterial->m_offset.setX(m_xmin);
+        mmaterial->m_offset.setY(m_ymin);
+        mmaterial->m_markersegments = m_markersegments;
+        mmaterial->m_markercolor = m_markercolor;
+        mmaterial->m_markersize = m_markersize;
+        mmaterial->setFlag(QSGMaterial::Blending, m_markercolor.alphaF() != 1.);
+
+        // reallocate geometry if number of points changed
+        if (mgeometry->vertexCount() != num_data_points) {
+            mgeometry->allocate(num_data_points);
+            m_new_data = true;
+        }
     }
 
     // update geometry
@@ -412,16 +465,18 @@ QSGNode *XYPlot::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNodeData *)
         m_new_source = false;
         m_new_data = false;
         double* src = (double*) m_source->data();
-        float* ldst = static_cast<float*>(mgeometry->vertexData());
-        float* mdst = static_cast<float*>(lgeometry->vertexData());
-        for (int i = 0; i < num_points*2; ++i) {
-            ldst[i] = src[i];
-            mdst[i] = src[i];
+        float* ldst = static_cast<float*>(lgeometry->vertexData());
+        float* mdst = static_cast<float*>(mgeometry->vertexData());
+        if (m_line) {
+            for (int i = 0; i < num_data_points*2; ++i) ldst[i] = src[i];
+        }
+        if (m_marker) {
+            for (int i = 0; i < num_data_points*2; ++i) mdst[i] = src[i];
         }
         dirty_state |= QSGNode::DirtyGeometry;
     }
 
-    //n->markDirty(dirty_state);
+    n->markDirty(dirty_state);
     n_line->markDirty(dirty_state);
     n_marker->markDirty(dirty_state);
     return n;
