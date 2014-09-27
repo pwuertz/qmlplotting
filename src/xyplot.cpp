@@ -29,10 +29,12 @@ public:
             uniform highp vec2 size;
             uniform highp vec2 scale;
             uniform highp vec2 offset;
+            uniform float msize;
 
             void main() {
                 highp vec2 p = (vertex.xy - offset) * scale * size;
                 gl_Position = matrix * vec4(p.x, size.y - p.y, 0., 1.);
+                gl_PointSize = msize;
             }
         );
     }
@@ -89,10 +91,12 @@ public:
         QOpenGLShaderProgram* p = program();
 
         if (QOpenGLShader::hasOpenGLShaders(QOpenGLShader::Geometry)) {
+            m_use_geometryshader = true;
             p->addShaderFromSourceCode(QOpenGLShader::Geometry, geometryShader());
             p->link();
+        } else {
+            m_use_geometryshader = false;
         }
-        // TODO: backup solution for OpenGL version < 3.2
 
         m_id_matrix = p->uniformLocation("matrix");
         m_id_opacity = p->uniformLocation("opacity");
@@ -100,8 +104,13 @@ public:
         m_id_scale = p->uniformLocation("scale");
         m_id_offset = p->uniformLocation("offset");
         m_id_msegments = p->uniformLocation("msegments");
+        m_id_msize = p->uniformLocation("msize");
         m_id_mradius = p->uniformLocation("mradius");
         m_id_mcolor = p->uniformLocation("mcolor");
+    }
+
+    void activate() {
+        if (!m_use_geometryshader) glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
     }
 
     void updateState(const RenderState &state, QSGMaterial *newMaterial, QSGMaterial *)
@@ -120,18 +129,21 @@ public:
         p->setUniformValue(m_id_scale, material->m_scale);
         p->setUniformValue(m_id_offset, material->m_offset);
         p->setUniformValue(m_id_msegments, material->m_markersegments);
+        p->setUniformValue(m_id_msize, float(material->m_markersize));
         float mradius = .5 * material->m_markersize * state.combinedMatrix()(0, 0);
         p->setUniformValue(m_id_mradius, mradius);
         p->setUniformValue(m_id_mcolor, material->m_markercolor);
     }
 
 private:
+    bool m_use_geometryshader;
     int m_id_matrix;
     int m_id_opacity;
     int m_id_size;
     int m_id_scale;
     int m_id_offset;
     int m_id_msegments;
+    int m_id_msize;
     int m_id_mradius;
     int m_id_mcolor;
 };
