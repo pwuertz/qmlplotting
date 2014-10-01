@@ -57,10 +57,14 @@ Rectangle {
             xMin: min_slider.value
             xMax: max_slider.value
             yMax: 1.1
+            lineEnabled: true
             lineWidth: 3.
             lineColor: "#7777cc"
-            markerColor: "#553333cc"
-            markerSize: 10
+            markerEnabled: true
+            markerColor: "#bb7777cc"
+            markerSize: 15
+            markerSegments: 3
+            markerBorder: true
         }
     }
 
@@ -99,14 +103,14 @@ Rectangle {
             Slider {
                 id: min_slider
                 width: 256
-                value: -1.1
+                value: -1.
                 minimumValue: -1.1
                 maximumValue: 1.1
             }
             Slider {
                 id: max_slider
                 width: 256
-                value: 1.1
+                value: 1.
                 minimumValue: -1.1
                 maximumValue: 1.1
             }

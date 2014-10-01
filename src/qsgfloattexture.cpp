@@ -13,7 +13,6 @@ QSGFloatTexture::QSGFloatTexture() :
     m_dims[0] = 0;
     m_dims[1] = 0;
     m_dims[2] = 0;
-    glGenTextures(1, &m_id_texture);
 }
 
 QSGFloatTexture::~QSGFloatTexture() {
@@ -50,6 +49,8 @@ bool QSGFloatTexture::hasMipmaps() const {
 }
 
 void QSGFloatTexture::bind() {
+    if (!m_id_texture) glGenTextures(1, &m_id_texture);
+
     switch (m_num_dims) {
     case 1:
         glBindTexture(GL_TEXTURE_1D, m_id_texture);

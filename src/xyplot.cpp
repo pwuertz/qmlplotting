@@ -2,6 +2,10 @@
 
 #include <QSGGeometryNode>
 #include <QSGFlatColorMaterial>
+#include <QPainter>
+
+#include <math.h>
+#include "qsguint8texture.h"
 
 #define GLSL(ver, src) "#version " #ver "\n" #src
 
@@ -9,14 +13,20 @@
 class XYMarkerMaterial : public QSGMaterial
 {
 public:
+    XYMarkerMaterial() : QSGMaterial(),
+        m_markersize(0),
+        m_markersegments(0),
+        m_markerborder(false) {}
     QSGMaterialType *type() const { static QSGMaterialType type; return &type; }
     QSGMaterialShader *createShader() const;
-    int m_markersegments;
-    double m_markersize;
     QSizeF m_size;
     QSizeF m_scale;
     QPointF m_offset;
     QColor m_markercolor;
+    double m_markersize;
+    int m_markersegments;
+    bool m_markerborder;
+    QSGUint8Texture m_markerimage;
 };
 
 class XYMarkerMaterialShader : public QSGMaterialShader
@@ -39,42 +49,17 @@ public:
         );
     }
 
-    const char *geometryShader() const {
-        return GLSL(150 core,
-            layout(points) in;
-            layout(triangle_strip, max_vertices = 60) out;
-            const float PI = 3.1415926;
-
-            uniform int msegments;
-            uniform float mradius;
-
-            void main() {
-                highp float dphi = PI * 2.0 / float(msegments);
-                for (int i = 0; i < msegments; i++) {
-                    highp float phi1 = dphi * float(i);
-                    highp float phi2 = phi1 + dphi;
-                    gl_Position = gl_in[0].gl_Position + mradius*vec4(-sin(phi1)*.9, cos(phi1), 0., 0.);
-                    EmitVertex();
-                    gl_Position = gl_in[0].gl_Position + mradius*vec4(-sin(phi2)*.9, cos(phi2), 0., 0.);
-                    EmitVertex();
-                    gl_Position = gl_in[0].gl_Position;
-                    EmitVertex();
-                    EndPrimitive();
-                }
-            }
-        );
-    }
-
     const char *fragmentShader() const {
         return GLSL(130,
-            uniform lowp vec4 mcolor;
             uniform lowp float opacity;
+            uniform lowp vec4 mcolor;
+            uniform sampler2D mimage;
             out vec4 fragColor;
 
             void main() {
-                lowp float o = opacity * mcolor.a;
-                fragColor.rgb = mcolor.rgb * o;
-                fragColor.a = o;
+                lowp vec4 color = mcolor * texture(mimage, gl_PointCoord.xy);
+                lowp float o = opacity * color.a;
+                fragColor = vec4(color.rgb * o, o);
             }
         );
     }
@@ -90,27 +75,19 @@ public:
         QSGMaterialShader::initialize();
         QOpenGLShaderProgram* p = program();
 
-        if (QOpenGLShader::hasOpenGLShaders(QOpenGLShader::Geometry)) {
-            m_use_geometryshader = true;
-            p->addShaderFromSourceCode(QOpenGLShader::Geometry, geometryShader());
-            p->link();
-        } else {
-            m_use_geometryshader = false;
-        }
-
         m_id_matrix = p->uniformLocation("matrix");
         m_id_opacity = p->uniformLocation("opacity");
         m_id_size = p->uniformLocation("size");
         m_id_scale = p->uniformLocation("scale");
         m_id_offset = p->uniformLocation("offset");
-        m_id_msegments = p->uniformLocation("msegments");
         m_id_msize = p->uniformLocation("msize");
-        m_id_mradius = p->uniformLocation("mradius");
         m_id_mcolor = p->uniformLocation("mcolor");
+        m_id_mimage = p->uniformLocation("mimage");
     }
 
     void activate() {
-        if (!m_use_geometryshader) glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+        glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+        glEnable(GL_POINT_SPRITE); // TODO: this is deprecated, but appears to be required on NVidia systems
     }
 
     void updateState(const RenderState &state, QSGMaterial *newMaterial, QSGMaterial *)
@@ -128,24 +105,23 @@ public:
         p->setUniformValue(m_id_size, material->m_size);
         p->setUniformValue(m_id_scale, material->m_scale);
         p->setUniformValue(m_id_offset, material->m_offset);
-        p->setUniformValue(m_id_msegments, material->m_markersegments);
         p->setUniformValue(m_id_msize, float(material->m_markersize));
-        float mradius = .5 * material->m_markersize * state.combinedMatrix()(0, 0);
-        p->setUniformValue(m_id_mradius, mradius);
         p->setUniformValue(m_id_mcolor, material->m_markercolor);
+
+        // bind texture
+        p->setUniformValue(m_id_mimage, 0);
+        material->m_markerimage.bind();
     }
 
 private:
-    bool m_use_geometryshader;
     int m_id_matrix;
     int m_id_opacity;
     int m_id_size;
     int m_id_scale;
     int m_id_offset;
-    int m_id_msegments;
     int m_id_msize;
-    int m_id_mradius;
     int m_id_mcolor;
+    int m_id_mimage;
 };
 
 inline QSGMaterialShader* XYMarkerMaterial::createShader() const { return new XYMarkerMaterialShader; }
@@ -249,9 +225,10 @@ XYPlot::XYPlot(QQuickItem *parent) :
     m_linewidth(1.),
     m_linecolor(0., 0., 0.),
     m_marker(true),
-    m_markersegments(8),
+    m_markersegments(0),
     m_markersize(5.),
-    m_markercolor(0., 0., 0.)
+    m_markercolor(0., 0., 0.),
+    m_markerborder(false)
 {
     setFlag(QQuickItem::ItemHasContents);
     setClip(true);
@@ -345,6 +322,14 @@ void XYPlot::setMarkerColor(const QColor &color)
     update();
 }
 
+void XYPlot::setMarkerBorder(bool enabled)
+{
+    if (m_markerborder == enabled) return;
+    m_markerborder = enabled;
+    emit markerBorderChanged(m_markerborder);
+    update();
+}
+
 
 class LineNode : public QSGGeometryNode
 {
@@ -385,6 +370,27 @@ public:
     bool m_blocked;
 };
 
+
+static void paintPolygon(QImage& img, int segments, bool border) {
+    int size = img.width();
+    QPainter p(&img);
+    if (!border) p.setPen(Qt::NoPen);
+    p.setBrush(QColor(Qt::white));
+
+    if (segments) {
+        QPointF points[segments];
+        double r = size * .5;
+        double dphi = 2.*M_PI * (1./segments);
+        for (int i = 0; i < segments; ++i) {
+            double x = size*.5 - r * sin(i*dphi);
+            double y = size*.5 - r * cos(i*dphi);
+            points[i] = QPointF(x, y);
+        }
+        p.drawConvexPolygon(points, segments);
+    } else {
+        p.drawEllipse(1, 1, size-2, size-2);
+    }
+}
 
 QSGNode *XYPlot::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNodeData *)
 {
@@ -453,6 +459,18 @@ QSGNode *XYPlot::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNodeData *)
     }
 
     if (m_marker) {
+        // update marker image
+        if (mmaterial->m_markersize != m_markersize ||
+                mmaterial->m_markersegments != m_markersegments ||
+                mmaterial->m_markerborder != m_markerborder) {
+            int image_size = ceil(m_markersize);
+            u_int8_t* data = mmaterial->m_markerimage.allocateData2D(image_size, image_size, 4);
+            QImage qimage(data, image_size, image_size, QImage::Format_ARGB32);
+            qimage.fill(0x00ffffff);
+            paintPolygon(qimage, m_markersegments, m_markerborder);
+            mmaterial->m_markerimage.commitData();
+        }
+
         // update marker material parameters
         mmaterial->m_size.setWidth(width());
         mmaterial->m_size.setHeight(height());
@@ -461,9 +479,10 @@ QSGNode *XYPlot::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNodeData *)
         mmaterial->m_offset.setX(m_xmin);
         mmaterial->m_offset.setY(m_ymin);
         mmaterial->m_markersegments = m_markersegments;
+        mmaterial->m_markerborder = m_markerborder;
         mmaterial->m_markercolor = m_markercolor;
         mmaterial->m_markersize = m_markersize;
-        mmaterial->setFlag(QSGMaterial::Blending, m_markercolor.alphaF() != 1.);
+        mmaterial->setFlag(QSGMaterial::Blending);
 
         // reallocate geometry if number of points changed
         if (mgeometry->vertexCount() != num_data_points) {
