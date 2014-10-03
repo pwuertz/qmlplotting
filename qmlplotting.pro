@@ -10,22 +10,20 @@ uri = qmlplotting
 SOURCES += \
     src/qmlplotting_plugin.cpp \
     src/colormappedimage.cpp \
-    src/qsgfloattexture.cpp \
     src/dataclient.cpp \
     src/sliceplot.cpp \
     src/datasource.cpp \
     src/xyplot.cpp \
-    src/qsguint8texture.cpp
+    src/qsgdatatexture.cpp
 
 HEADERS += \
     src/qmlplotting_plugin.h \
     src/colormappedimage.h \
-    src/qsgfloattexture.h \
     src/dataclient.h \
     src/sliceplot.h \
     src/datasource.h \
     src/xyplot.h \
-    src/qsguint8texture.h
+    src/qsgdatatexture.h
 
 OTHER_FILES = qmldir \
     ZoomPanImage.qml \

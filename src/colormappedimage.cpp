@@ -7,7 +7,7 @@
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>
 #include <QStringList>
-#include "qsgfloattexture.h"
+#include "qsgdatatexture.h"
 
 #define GLSL(ver, src) "#version " #ver "\n" #src
 
@@ -89,7 +89,7 @@ public:
     QSGMaterialType *type() const { static QSGMaterialType type; return &type; }
     QSGMaterialShader *createShader() const;
     QSGTexture* m_texture_image;
-    QSGTexture* m_texture_cmap;
+    QSGDataTexture<float> m_texture_cmap;
     double m_amplitude;
     double m_offset;
 };
@@ -171,7 +171,7 @@ public:
         // bind the material textures (image and colormap)
         functions->glActiveTexture(GL_TEXTURE1);
         program()->setUniformValue(m_id_cmap, 1);
-        material->m_texture_cmap->bind();
+        material->m_texture_cmap.bind();
         functions->glActiveTexture(GL_TEXTURE0);
         program()->setUniformValue(m_id_image, 0);
         material->m_texture_image->bind();
@@ -287,7 +287,7 @@ QRectF ColormappedImage::mapRectToScene(const QRectF &vrect) const
     return QRectF(x, y, vrect.width()*wscale, vrect.height()*hscale);
 }
 
-static void updateColormapTexture(QSGFloatTexture* t, const QString& colormap) {
+static void updateColormapTexture(QSGDataTexture<float>& t, const QString& colormap) {
     // default colormap
     double* data = cmap_gray;
     int numpoints = sizeof(cmap_gray) / (3*sizeof(double));
@@ -307,7 +307,12 @@ static void updateColormapTexture(QSGFloatTexture* t, const QString& colormap) {
         numpoints = sizeof(cmap_bwr) / (3*sizeof(double));
     }
 
-    t->setData1D(data, numpoints, 3);
+    // copy colormap to texture buffer
+    float* tbuffer = t.allocateData1D(numpoints, 3);
+    for (int i = 0; i < numpoints*3; ++i) {
+        tbuffer[i] = data[i];
+    }
+    t.commitData();
 }
 
 QSGNode *ColormappedImage::updatePaintNode(QSGNode *node, QQuickItem::UpdatePaintNodeData *)
@@ -331,17 +336,13 @@ QSGNode *ColormappedImage::updatePaintNode(QSGNode *node, QQuickItem::UpdatePain
         n->setGeometry(geometry);
         n->setFlag(QSGNode::OwnsGeometry);
         m_new_geometry = true;
-        // initialize colormap
-        if (!m_texture_cmap) {
-            m_texture_cmap = new QSGFloatTexture();
-            m_new_colormap = true;
-        }
         // initialize material
         material = new QSQColormapMaterial;
-        material->m_texture_cmap = m_texture_cmap;
         material->m_texture_image = m_source->textureProvider()->texture();
         n->setMaterial(material);
         n->setFlag(QSGNode::OwnsMaterial);
+        // force colormap initialization
+        m_new_colormap = true;
     }
 
     if (!n) {
@@ -389,8 +390,7 @@ QSGNode *ColormappedImage::updatePaintNode(QSGNode *node, QQuickItem::UpdatePain
 
     // check if the cmap texture should be updated
     if (m_new_colormap) {
-        QSGFloatTexture* t = static_cast<QSGFloatTexture*>(material->m_texture_cmap);
-        updateColormapTexture(t, m_colormap);
+        updateColormapTexture(material->m_texture_cmap, m_colormap);
         m_new_colormap = false;
     }
 

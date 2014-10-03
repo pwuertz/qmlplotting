@@ -5,7 +5,7 @@
 #include <QPainter>
 
 #include <math.h>
-#include "qsguint8texture.h"
+#include "qsgdatatexture.h"
 
 #define GLSL(ver, src) "#version " #ver "\n" #src
 
@@ -26,7 +26,7 @@ public:
     double m_markersize;
     int m_markersegments;
     bool m_markerborder;
-    QSGUint8Texture m_markerimage;
+    QSGDataTexture<uint8_t> m_markerimage;
 };
 
 class XYMarkerMaterialShader : public QSGMaterialShader

@@ -1,20 +1,28 @@
 #include <QThread>
 #include <QOpenGLContext>
 #include "datasource.h"
-#include "qsgfloattexture.h"
+#include "qsgdatatexture.h"
 
 #include <math.h>
 
 
-class DataTexture : public QSGFloatTexture
+class DataTexture : public QSGDataTexture<float>
 {
 public:
-    DataTexture(DataSource* source) : QSGFloatTexture(), m_source(source) {}
+    DataTexture(DataSource* source) : QSGDataTexture<float>(), m_source(source) {}
     virtual ~DataTexture() {}
 
     virtual bool updateTexture() {
         if (m_source->m_new_data) {
-            setData(m_source->m_data, m_source->m_dims, m_source->m_num_dims, 1);
+            // copy/convert data to float texture buffer
+            float* data = allocateData(m_source->m_dims, m_source->m_num_dims, 1);
+            int num_elements = 1;
+            for (int i = 0; i < m_source->m_num_dims; ++i)
+                num_elements *= m_source->m_dims[i];
+            for (int i = 0; i < num_elements; ++i) {
+                data[i] = m_source->m_data[i];
+            }
+            commitData();
             return true;
         } else  {
             return false;
