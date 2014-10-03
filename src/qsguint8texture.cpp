@@ -72,20 +72,20 @@ void QSGUint8Texture::bind() {
         GLenum format;
         switch (m_num_components) {
         case 1:
-            internal_format = GL_R;
+            internal_format = GL_R8;
             format = GL_RED;
             break;
         case 2:
-            internal_format = GL_RG;
+            internal_format = GL_RG8;
             format = GL_RG;
             break;
         case 3:
-            internal_format = GL_RGB;
+            internal_format = GL_RGB8;
             format = GL_RGB;
             break;
         case 4:
-            internal_format = GL_RGBA;
-            format = GL_RGBA;
+            internal_format = GL_RGBA8;
+            format = GL_BGRA;
             break;
         default:
             return;
