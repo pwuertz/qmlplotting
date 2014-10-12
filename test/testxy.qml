@@ -57,12 +57,14 @@ Rectangle {
             xMin: min_slider.value
             xMax: max_slider.value
             yMax: 1.1
+            fillEnabled: true
+            fillColor: "#44aaaaff"
             lineEnabled: true
-            lineWidth: 3.
-            lineColor: "#7777cc"
+            lineWidth: 4.
+            lineColor: "#8888cc"
             markerEnabled: true
-            markerColor: "#bb7777cc"
-            markerSize: 15
+            markerColor: "#998888cc"
+            markerSize: 13
             markerSegments: 3
             markerBorder: true
         }

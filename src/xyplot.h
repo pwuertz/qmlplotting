@@ -10,6 +10,8 @@ class XYPlot : public DataClient
     Q_PROPERTY(double xMax MEMBER m_xmax WRITE setXMax NOTIFY xMaxChanged)
     Q_PROPERTY(double yMin MEMBER m_ymin WRITE setYMin NOTIFY yMinChanged)
     Q_PROPERTY(double yMax MEMBER m_ymax WRITE setYMax NOTIFY yMaxChanged)
+    Q_PROPERTY(bool fillEnabled MEMBER m_fill WRITE setFillEnabled NOTIFY fillEnabledChanged)
+    Q_PROPERTY(QColor fillColor MEMBER m_fillcolor WRITE setFillColor NOTIFY fillColorChanged)
     Q_PROPERTY(bool lineEnabled MEMBER m_line WRITE setLineEnabled NOTIFY lineEnabledChanged)
     Q_PROPERTY(double lineWidth MEMBER m_linewidth WRITE setLineWidth NOTIFY lineWidthChanged)
     Q_PROPERTY(QColor lineColor MEMBER m_linecolor WRITE setLineColor NOTIFY lineColorChanged)
@@ -27,6 +29,8 @@ public:
     void setXMax(double value);
     void setYMin(double value);
     void setYMax(double value);
+    void setFillEnabled(bool enabled);
+    void setFillColor(const QColor& color);
     void setLineEnabled(bool enabled);
     void setLineWidth(double width);
     void setLineColor(const QColor& color);
@@ -41,6 +45,8 @@ signals:
     void xMaxChanged(double);
     void yMinChanged(double);
     void yMaxChanged(double);
+    void fillEnabledChanged(bool);
+    void fillColorChanged(const QColor&);
     void lineEnabledChanged(bool);
     void lineWidthChanged(double);
     void lineColorChanged(const QColor&);
@@ -58,6 +64,8 @@ private:
     double m_xmax;
     double m_ymin;
     double m_ymax;
+    bool m_fill;
+    QColor m_fillcolor;
     bool m_line;
     double m_linewidth;
     QColor m_linecolor;
