@@ -1,21 +1,5 @@
 #include "qsgdatatexture.h"
-
 #include <QOpenGLContext>
-
-
-// QSGDataTexture<float>
-template<> const int QSGDataTexture<float>::glformat_internal[5] = {0, GL_R32F, GL_RG32F, GL_RGB32F, GL_RGBA32F};
-template<> const int QSGDataTexture<float>::glformat[5] = {0, GL_RED, GL_RG, GL_RGB, GL_RGBA};
-template<> const int QSGDataTexture<float>::gltype = GL_FLOAT;
-template class QSGDataTexture<float>;
-
-
-// QSGDataTexture<uint8_t>
-template<> const int QSGDataTexture<uint8_t>::glformat_internal[5] = {0, GL_R8, GL_RG8, GL_RGB8, GL_RGBA8};
-template<> const int QSGDataTexture<uint8_t>::glformat[5] = {0, GL_RED, GL_RG, GL_RGB, GL_BGRA};
-template<> const int QSGDataTexture<uint8_t>::gltype = GL_UNSIGNED_BYTE;
-template class QSGDataTexture<uint8_t>;
-
 
 template<typename T>
 QSGDataTexture<T>::QSGDataTexture() :
@@ -176,3 +160,16 @@ bool QSGDataTexture<T>::updateTexture()
 {
     return false;
 }
+
+
+// explicit instantiation of QSGDataTexture<float>
+template<> const int QSGDataTexture<float>::glformat_internal[5] = {0, GL_R32F, GL_RG32F, GL_RGB32F, GL_RGBA32F};
+template<> const int QSGDataTexture<float>::glformat[5] = {0, GL_RED, GL_RG, GL_RGB, GL_RGBA};
+template<> const int QSGDataTexture<float>::gltype = GL_FLOAT;
+template class QSGDataTexture<float>;
+
+// explicit instantiation of QSGDataTexture<uint8_t>
+template<> const int QSGDataTexture<uint8_t>::glformat_internal[5] = {0, GL_R8, GL_RG8, GL_RGB8, GL_RGBA8};
+template<> const int QSGDataTexture<uint8_t>::glformat[5] = {0, GL_RED, GL_RG, GL_RGB, GL_BGRA};
+template<> const int QSGDataTexture<uint8_t>::gltype = GL_UNSIGNED_BYTE;
+template class QSGDataTexture<uint8_t>;
