@@ -69,7 +69,6 @@ void QSGDataTexture<T>::bind() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         break;
-#ifdef GL_TEXTURE_3D // TODO: should obtain gl api from qt
     case 3:
         glBindTexture(GL_TEXTURE_3D, m_id_texture);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -78,7 +77,6 @@ void QSGDataTexture<T>::bind() {
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
         break;
-#endif
     default:
         break;
     }
@@ -98,11 +96,11 @@ void QSGDataTexture<T>::bind() {
         case 2:
             glTexImage2D(GL_TEXTURE_2D, 0, internal_format, m_dims[0], m_dims[1], 0, format, type, m_buffer.data());
             break;
-#ifdef GL_TEXTURE_3D // TODO: should obtain gl api from qt
         case 3:
+#ifndef _WIN32 // TODO: glTexImage3D cannot be linked on windows, use qt opengl api
             glTexImage3D(GL_TEXTURE_3D, 0, internal_format, m_dims[0], m_dims[1], m_dims[2], 0, format, type, m_buffer.data());
-            break;
 #endif
+            break;
         default:
             return;
         }

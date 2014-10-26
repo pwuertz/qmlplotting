@@ -7,6 +7,10 @@
 #include <math.h>
 #include "qsgdatatexture.h"
 
+#ifndef M_PI
+#define M_PI		3.14159265358979323846
+#endif
+
 #define GLSL(ver, src) "#version " #ver "\n" #src
 
 
@@ -619,7 +623,7 @@ QSGNode *XYPlot::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNodeData *)
                 mmaterial->m_markersegments != m_markersegments ||
                 mmaterial->m_markerborder != m_markerborder) {
             int image_size = ceil(m_markersize);
-            u_int8_t* data = mmaterial->m_markerimage.allocateData2D(image_size, image_size, 4);
+            uint8_t* data = mmaterial->m_markerimage.allocateData2D(image_size, image_size, 4);
             QImage qimage(data, image_size, image_size, QImage::Format_ARGB32);
             qimage.fill(0x00ffffff);
             paintPolygon(qimage, m_markersegments, m_markerborder);
