@@ -5,17 +5,15 @@ import qmlplotting 1.0
 Item {
     width: 640; height: 512
 
-    function getItems() {
-        return [source, image, selection_user]
-    }
-
     DataSource {
         id: source
+        objectName: "source"
         Component.onCompleted: source.setTestData2D()
     }
 
     ZoomPanImage {
         id: image
+        objectName: "image"
         anchors.fill: parent
         dataSource: source
         minimumValue: min_slider.value
@@ -24,6 +22,7 @@ Item {
 
         SelectionBox {
             id: selection_user
+            objectName: "selection_user"
         }
 
         Rectangle {
@@ -70,6 +69,7 @@ Item {
         spacing: 3
 
         Button {
+            objectName: "button"
             text: "New Data"
             onClicked: source.setTestData2D()
         }
