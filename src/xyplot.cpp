@@ -3,6 +3,7 @@
 #include <QSGGeometryNode>
 #include <QSGFlatColorMaterial>
 #include <QPainter>
+#include <vector>
 
 #include <math.h>
 #include "qsgdatatexture.h"
@@ -510,15 +511,16 @@ static void paintPolygon(QImage& img, int segments, bool border) {
     p.setBrush(QColor(Qt::white));
 
     if (segments) {
-        QPointF points[segments];
+        auto points = std::vector<QPointF>(segments);
         double r = size * .5;
         double dphi = 2.*M_PI * (1./segments);
         for (int i = 0; i < segments; ++i) {
             double x = size*.5 - r * sin(i*dphi);
             double y = size*.5 - r * cos(i*dphi);
-            points[i] = QPointF(x, y);
+            points[i].setX(x);
+            points[i].setY(y);
         }
-        p.drawConvexPolygon(points, segments);
+        p.drawConvexPolygon(points.data(), segments);
     } else {
         p.drawEllipse(1, 1, size-2, size-2);
     }
