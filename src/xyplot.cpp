@@ -577,9 +577,14 @@ QSGNode *XYPlot::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNodeData *)
 
     QSGNode::DirtyState dirty_state = QSGNode::DirtyMaterial;
 
-    n_fill->m_blocked = !m_fill;
-    n_line->m_blocked = !m_line;
-    n_marker->m_blocked = !m_marker;
+    // check if fill, line or markers were switched on or off
+    if (n_fill->m_blocked == m_fill || n_line->m_blocked == m_line || n_marker->m_blocked == m_marker) {
+        n_fill->m_blocked = !m_fill;
+        n_line->m_blocked = !m_line;
+        n_marker->m_blocked = !m_marker;
+        dirty_state |= QSGNode::DirtySubtreeBlocked;
+    }
+
     int num_data_points = m_source->dataWidth() / 2;
 
     if (m_fill) {
