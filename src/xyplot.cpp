@@ -447,7 +447,7 @@ void XYPlot::setMarkerBorder(bool enabled)
 class FillNode : public QSGGeometryNode
 {
 public:
-    FillNode() : QSGGeometryNode() {
+    FillNode() : QSGGeometryNode(), m_blocked(false), m_data_valid(false) {
         QSGGeometry* geometry;
         geometry = new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), 0);
         geometry->setDrawingMode(GL_TRIANGLE_STRIP);
@@ -461,13 +461,14 @@ public:
     virtual ~FillNode() {}
     virtual bool isSubtreeBlocked() const {return m_blocked;}
     bool m_blocked;
+    bool m_data_valid;
 };
 
 
 class LineNode : public QSGGeometryNode
 {
 public:
-    LineNode() : QSGGeometryNode() {
+    LineNode() : QSGGeometryNode(), m_blocked(false), m_data_valid(false) {
         QSGGeometry* geometry;
         geometry = new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), 0);
         geometry->setDrawingMode(GL_LINE_STRIP);
@@ -481,13 +482,14 @@ public:
     virtual ~LineNode() {}
     virtual bool isSubtreeBlocked() const {return m_blocked;}
     bool m_blocked;
+    bool m_data_valid;
 };
 
 
 class MarkerNode : public QSGGeometryNode
 {
 public:
-    MarkerNode() : QSGGeometryNode() {
+    MarkerNode() : QSGGeometryNode(), m_blocked(false), m_data_valid(false) {
         QSGGeometry* geometry;
         geometry = new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), 0);
         geometry->setDrawingMode(GL_POINTS);
@@ -501,6 +503,7 @@ public:
     virtual ~MarkerNode() {}
     virtual bool isSubtreeBlocked() const {return m_blocked;}
     bool m_blocked;
+    bool m_data_valid;
 };
 
 
@@ -537,16 +540,28 @@ QSGNode *XYPlot::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNodeData *)
     XYLineMaterial *lmaterial;
     QSGGeometry *mgeometry;
     XYMarkerMaterial *mmaterial;
+    QSGNode::DirtyState dirty_state = QSGNode::DirtyMaterial;
 
-    if (n && !m_source) {
-        // remove the node if there is no data source
-        delete n;
-        return nullptr;
+    if (!n) {
+        n = new QSGNode;
     }
 
-    if  (!n && m_source) {
-        // create a base node if there is a data source
-        n = new QSGNode;
+    if (!m_source) {
+        // remove child nodes if there is no data source
+        if (n->childCount() != 0) {
+            n_fill = static_cast<FillNode*>(n->childAtIndex(0));
+            n_line = static_cast<LineNode*>(n->childAtIndex(1));
+            n_marker = static_cast<MarkerNode*>(n->childAtIndex(2));
+            n->removeAllChildNodes();
+            delete n_fill;
+            delete n_line;
+            delete n_marker;
+        }
+        // return empty node
+        return n;
+    }
+
+    if (n->childCount() == 0) {
         // append child nodes for fill, line and markers
         n_fill = new FillNode;
         n_line = new LineNode;
@@ -559,11 +574,6 @@ QSGNode *XYPlot::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNodeData *)
         n->appendChildNode(n_marker);
     }
 
-    if (!n) {
-        // return null if there is nothing to be drawn
-        return nullptr;
-    }
-
     // ** graph node and data source can be considered valid from here on **
     n_fill = static_cast<FillNode*>(n->childAtIndex(0));
     n_line = static_cast<LineNode*>(n->childAtIndex(1));
@@ -574,8 +584,6 @@ QSGNode *XYPlot::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNodeData *)
     fmaterial = static_cast<XYFillMaterial*>(n_fill->material());
     lmaterial = static_cast<XYLineMaterial*>(n_line->material());
     mmaterial = static_cast<XYMarkerMaterial*>(n_marker->material());
-
-    QSGNode::DirtyState dirty_state = QSGNode::DirtyMaterial;
 
     // check if fill, line or markers were switched on or off
     if (n_fill->m_blocked == m_fill || n_line->m_blocked == m_line || n_marker->m_blocked == m_marker) {
@@ -657,29 +665,41 @@ QSGNode *XYPlot::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNodeData *)
         }
     }
 
-    // update geometry
+    // update geometry if new data is available
     if (m_new_source || m_new_data) {
+        n_fill->m_data_valid = false;
+        n_line->m_data_valid = false;
+        n_marker->m_data_valid = false;
         m_new_source = false;
         m_new_data = false;
-        double* src = (double*) m_source->data();
-        if (m_fill) {
-            float* fdst = static_cast<float*>(fgeometry->vertexData());
-            for (int i = 0; i < num_data_points; ++i) {
-                fdst[4*i+0] = src[2*i+0];
-                fdst[4*i+1] = 0.;
-                fdst[4*i+2] = src[2*i+0];
-                fdst[4*i+3] = src[2*i+1];
-            }
-        }
-        if (m_line) {
-            float* ldst = static_cast<float*>(lgeometry->vertexData());
-            for (int i = 0; i < num_data_points*2; ++i) ldst[i] = src[i];
-        }
-        if (m_marker) {
-            float* mdst = static_cast<float*>(mgeometry->vertexData());
-            for (int i = 0; i < num_data_points*2; ++i) mdst[i] = src[i];
+    }
+
+    double* src = (double*) m_source->data();
+
+    if (m_fill && !n_fill->m_data_valid) {
+        float* fdst = static_cast<float*>(fgeometry->vertexData());
+        for (int i = 0; i < num_data_points; ++i) {
+            fdst[4*i+0] = src[2*i+0];
+            fdst[4*i+1] = 0.;
+            fdst[4*i+2] = src[2*i+0];
+            fdst[4*i+3] = src[2*i+1];
         }
         dirty_state |= QSGNode::DirtyGeometry;
+        n_fill->m_data_valid = true;
+    }
+
+    if (m_line && !n_line->m_data_valid) {
+        float* ldst = static_cast<float*>(lgeometry->vertexData());
+        for (int i = 0; i < num_data_points*2; ++i) ldst[i] = src[i];
+        dirty_state |= QSGNode::DirtyGeometry;
+        n_line->m_data_valid = true;
+    }
+
+    if (m_marker && !n_marker->m_data_valid) {
+        float* mdst = static_cast<float*>(mgeometry->vertexData());
+        for (int i = 0; i < num_data_points*2; ++i) mdst[i] = src[i];
+        dirty_state |= QSGNode::DirtyGeometry;
+        n_marker->m_data_valid = true;
     }
 
     n->markDirty(dirty_state);

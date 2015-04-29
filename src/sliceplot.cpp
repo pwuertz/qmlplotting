@@ -284,21 +284,32 @@ void SlicePlot::setFilled(bool filled)
     update();
 }
 
-QSGNode *SlicePlot::updatePaintNode(QSGNode *node, QQuickItem::UpdatePaintNodeData *)
+QSGNode *SlicePlot::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNodeData *)
 {
-    QSGGeometryNode* n = static_cast<QSGGeometryNode*>(node);
+    QSGGeometryNode* n_geom;
     QSGGeometry *geometry;
     SlicePlotMaterial *material;
 
-    if (n && !m_source) {
-        // remove the node if there is no data source
-        delete n;
-        return nullptr;
+    if (!n) {
+        n = new QSGNode;
     }
 
-    if  (!n && m_source) {
-        // create a node if there is a data source
-        n = new QSGGeometryNode();
+    if (!m_source) {
+        // remove child node if there is no data source
+        if (n->firstChild()) {
+            n_geom = static_cast<QSGGeometryNode*>(n->firstChild());
+            n->removeAllChildNodes();
+            delete n_geom;
+        }
+        // return empty node
+        return n;
+    }
+
+    if (!n->firstChild()) {
+        // create child node if there is a data source
+        n_geom = new QSGGeometryNode();
+        n_geom->setFlag(QSGNode::OwnedByParent);
+        n->appendChildNode(n_geom);
         // inintialize geometry & material
         if (m_filled) {
             geometry = new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), 0);
@@ -312,21 +323,17 @@ QSGNode *SlicePlot::updatePaintNode(QSGNode *node, QQuickItem::UpdatePaintNodeDa
             material = new SliceLinePlotMaterial;
             material->m_texture_data = m_source->textureProvider()->texture();
         }
-        n->setGeometry(geometry);
-        n->setFlag(QSGNode::OwnsGeometry);
-        n->setMaterial(material);
-        n->setFlag(QSGNode::OwnsMaterial);
-    }
-
-    if (!n) {
-        // return null if there is nothing to be drawn
-        return nullptr;
+        n_geom->setGeometry(geometry);
+        n_geom->setFlag(QSGNode::OwnsGeometry);
+        n_geom->setMaterial(material);
+        n_geom->setFlag(QSGNode::OwnsMaterial);
     }
 
     // ** graph node and data source can be considered valid from here on **
 
-    geometry = n->geometry();
-    material = static_cast<SlicePlotMaterial*>(n->material());
+    n_geom = static_cast<QSGGeometryNode*>(n->firstChild());
+    geometry = n_geom->geometry();
+    material = static_cast<SlicePlotMaterial*>(n_geom->material());
     QSGNode::DirtyState dirty_state = QSGNode::DirtyMaterial;
 
     // check if the filled parameter was changed, switch material if necessary
@@ -343,7 +350,7 @@ QSGNode *SlicePlot::updatePaintNode(QSGNode *node, QQuickItem::UpdatePaintNodeDa
             material = new SliceLinePlotMaterial;
             material->m_texture_data = m_source->textureProvider()->texture();
         }
-        n->setMaterial(material);
+        n_geom->setMaterial(material);
     }
 
     // update material parameters
@@ -394,5 +401,6 @@ QSGNode *SlicePlot::updatePaintNode(QSGNode *node, QQuickItem::UpdatePaintNodeDa
     }
 
     n->markDirty(dirty_state);
+    n_geom->markDirty(dirty_state);
     return n;
 }
