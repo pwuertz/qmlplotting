@@ -1,5 +1,6 @@
 #include "qsgdatatexture.h"
 #include <QOpenGLContext>
+#include <cstdint>
 
 template<typename T>
 QSGDataTexture<T>::QSGDataTexture() :
@@ -162,6 +163,7 @@ bool QSGDataTexture<T>::updateTexture()
 {
     return false;
 }
+
 
 
 // explicit instantiation of QSGDataTexture<float>

@@ -4,7 +4,7 @@
 #include <QSGFlatColorMaterial>
 #include <QPainter>
 #include <vector>
-
+#include <cstdint>
 #include <math.h>
 #include "qsgdatatexture.h"
 
