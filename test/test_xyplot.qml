@@ -6,17 +6,15 @@ Rectangle {
     width: 640; height: 512
     color: "gray"
 
-    function getItems() {
-        return [source, xyplot]
-    }
-
     DataSource {
         id: source
+        objectName: "source"
         Component.onCompleted: source.setTestData1D()
     }
 
     Button {
         text: "New Data"
+        objectName: "button"
         onClicked: source.setTestData1D()
     }
 
@@ -50,6 +48,7 @@ Rectangle {
 
         XYPlot {
             id: xyplot
+            objectName: "xyplot"
             width: 630; height: 200
             y: plot_box_top.height
             x: 1
@@ -90,7 +89,7 @@ Rectangle {
             Text {
                 x: 4; y: 2
                 id: slider_box_label
-                text: "Minimum / Maximum"
+                text: "Plot Range"
             }
             MouseArea {
                 anchors.fill: parent

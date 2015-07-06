@@ -4,7 +4,7 @@ from PyQt5 import QtCore, QtGui, QtQuick
 # setup qml application
 app = QtGui.QGuiApplication([])
 win = QtQuick.QQuickView()
-win.setSource(QtCore.QUrl.fromLocalFile("test.qml"))
+win.setSource(QtCore.QUrl.fromLocalFile("test_image.qml"))
 win.setResizeMode(win.SizeRootObjectToView)
 win.show()
 
@@ -25,8 +25,8 @@ def update_image(img):
     img += .2 * (np.random.random(img.shape) - .5)
 
 # update example1: use numpy array as DataSource
+img_buffer = np.empty((height, width), dtype=np.double)
 def update_data1():
-    img_buffer = np.empty((height, width), dtype=np.double)
     update_image(img_buffer)
     source.setData2D(img_buffer.ctypes.data, width, height)
 
