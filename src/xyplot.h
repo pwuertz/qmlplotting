@@ -6,10 +6,7 @@
 class XYPlot : public DataClient
 {
     Q_OBJECT
-    Q_PROPERTY(double xMin MEMBER m_xmin WRITE setXMin NOTIFY xMinChanged)
-    Q_PROPERTY(double xMax MEMBER m_xmax WRITE setXMax NOTIFY xMaxChanged)
-    Q_PROPERTY(double yMin MEMBER m_ymin WRITE setYMin NOTIFY yMinChanged)
-    Q_PROPERTY(double yMax MEMBER m_ymax WRITE setYMax NOTIFY yMaxChanged)
+    Q_PROPERTY(QRectF viewRect MEMBER m_view_rect WRITE setViewRect NOTIFY viewRectChanged)
     Q_PROPERTY(bool fillEnabled MEMBER m_fill WRITE setFillEnabled NOTIFY fillEnabledChanged)
     Q_PROPERTY(QColor fillColor MEMBER m_fillcolor WRITE setFillColor NOTIFY fillColorChanged)
     Q_PROPERTY(bool lineEnabled MEMBER m_line WRITE setLineEnabled NOTIFY lineEnabledChanged)
@@ -25,10 +22,7 @@ public:
     explicit XYPlot(QQuickItem *parent = 0);
     virtual ~XYPlot() {}
 
-    void setXMin(double value);
-    void setXMax(double value);
-    void setYMin(double value);
-    void setYMax(double value);
+    void setViewRect(const QRectF& viewrect);
     void setFillEnabled(bool enabled);
     void setFillColor(const QColor& color);
     void setLineEnabled(bool enabled);
@@ -41,10 +35,7 @@ public:
     void setMarkerBorder(bool enabled);
 
 signals:
-    void xMinChanged(double);
-    void xMaxChanged(double);
-    void yMinChanged(double);
-    void yMaxChanged(double);
+    void viewRectChanged(const QRectF& viewrect);
     void fillEnabledChanged(bool);
     void fillColorChanged(const QColor&);
     void lineEnabledChanged(bool);
@@ -60,10 +51,7 @@ protected:
     virtual QSGNode* updatePaintNode(QSGNode *, UpdatePaintNodeData *);
 
 private:
-    double m_xmin;
-    double m_xmax;
-    double m_ymin;
-    double m_ymax;
+    QRectF m_view_rect;
     bool m_fill;
     QColor m_fillcolor;
     bool m_line;

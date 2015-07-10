@@ -1,4 +1,5 @@
 import QtQuick 2.0
+import QtQml 2.2
 import QtQuick.Controls 1.1
 import qmlplotting 1.0
 
@@ -53,9 +54,7 @@ Rectangle {
             y: plot_box_top.height
             x: 1
             dataSource: source
-            xMin: min_slider.value
-            xMax: max_slider.value
-            yMax: 1.1
+            viewRect: Qt.rect(min_slider.value, 0., max_slider.value-min_slider.value, 1.1)
             fillEnabled: true
             fillColor: "#44aaaaff"
             lineEnabled: true

@@ -314,8 +314,7 @@ inline QSGMaterialShader* XYFillMaterial::createShader() const { return new XYFi
 
 XYPlot::XYPlot(QQuickItem *parent) :
     DataClient(parent),
-    m_xmin(0.), m_xmax(1.),
-    m_ymin(0.), m_ymax(1.),
+    m_view_rect(0, 0, 1, 1),
     m_fill(false),
     m_fillcolor(0., 0., 0.),
     m_line(true),
@@ -331,35 +330,11 @@ XYPlot::XYPlot(QQuickItem *parent) :
     setClip(true);
 }
 
-void XYPlot::setXMin(double value)
+void XYPlot::setViewRect(const QRectF &viewrect)
 {
-    if (m_xmin == value) return;
-    m_xmin = value;
-    emit xMinChanged(m_xmin);
-    update();
-}
-
-void XYPlot::setXMax(double value)
-{
-    if (m_xmax == value) return;
-    m_xmax = value;
-    emit xMaxChanged(m_xmax);
-    update();
-}
-
-void XYPlot::setYMin(double value)
-{
-    if (m_ymin == value) return;
-    m_ymin = value;
-    emit yMinChanged(m_ymin);
-    update();
-}
-
-void XYPlot::setYMax(double value)
-{
-    if (m_ymax == value) return;
-    m_ymax = value;
-    emit yMaxChanged(m_ymax);
+    if (viewrect == m_view_rect) return;
+    m_view_rect = viewrect;
+    emit viewRectChanged(m_view_rect);
     update();
 }
 
@@ -594,15 +569,19 @@ QSGNode *XYPlot::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNodeData *)
     }
 
     int num_data_points = m_source->dataWidth() / 2;
+    double xmin = m_view_rect.left();
+    double ymin = m_view_rect.top();
+    double xrange = m_view_rect.width();
+    double yrange = m_view_rect.height();
 
     if (m_fill) {
         // update fill material parameters
         fmaterial->m_size.setWidth(width());
         fmaterial->m_size.setHeight(height());
-        fmaterial->m_scale.setWidth(1. / (m_xmax - m_xmin));
-        fmaterial->m_scale.setHeight(1. / (m_ymax - m_ymin));
-        fmaterial->m_offset.setX(m_xmin);
-        fmaterial->m_offset.setY(m_ymin);
+        fmaterial->m_scale.setWidth(1. / xrange);
+        fmaterial->m_scale.setHeight(1. / yrange);
+        fmaterial->m_offset.setX(xmin);
+        fmaterial->m_offset.setY(ymin);
         fmaterial->m_color = m_fillcolor;
         fmaterial->setFlag(QSGMaterial::Blending, m_fillcolor.alphaF() != 1.);
 
@@ -617,10 +596,10 @@ QSGNode *XYPlot::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNodeData *)
         // update line material parameters
         lmaterial->m_size.setWidth(width());
         lmaterial->m_size.setHeight(height());
-        lmaterial->m_scale.setWidth(1. / (m_xmax - m_xmin));
-        lmaterial->m_scale.setHeight(1. / (m_ymax - m_ymin));
-        lmaterial->m_offset.setX(m_xmin);
-        lmaterial->m_offset.setY(m_ymin);
+        lmaterial->m_scale.setWidth(1. / xrange);
+        lmaterial->m_scale.setHeight(1. / yrange);
+        lmaterial->m_offset.setX(xmin);
+        lmaterial->m_offset.setY(ymin);
         lmaterial->m_color = m_linecolor;
         lmaterial->setFlag(QSGMaterial::Blending, m_linecolor.alphaF() != 1.);
         lgeometry->setLineWidth(m_linewidth);
@@ -648,10 +627,10 @@ QSGNode *XYPlot::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNodeData *)
         // update marker material parameters
         mmaterial->m_size.setWidth(width());
         mmaterial->m_size.setHeight(height());
-        mmaterial->m_scale.setWidth(1. / (m_xmax - m_xmin));
-        mmaterial->m_scale.setHeight(1. / (m_ymax - m_ymin));
-        mmaterial->m_offset.setX(m_xmin);
-        mmaterial->m_offset.setY(m_ymin);
+        mmaterial->m_scale.setWidth(1. / xrange);
+        mmaterial->m_scale.setHeight(1. / yrange);
+        mmaterial->m_offset.setX(xmin);
+        mmaterial->m_offset.setY(ymin);
         mmaterial->m_markersegments = m_markersegments;
         mmaterial->m_markerborder = m_markerborder;
         mmaterial->m_markercolor = m_markercolor;
