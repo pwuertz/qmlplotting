@@ -27,9 +27,13 @@ HEADERS += \
 
 QML_FILES += \
     ZoomPanImage.qml \
+    ZoomPanArea.qml \
     SelectionBox.qml
 
-OTHER_FILES = qmldir
+OTHER_FILES = qmldir \
+    test/test_image.qml \
+    test/test_xyplot.qml \
+    test/test_plotarea.qml
 
 qmldir.files = qmldir $$QML_FILES
 installPath = $$[QT_INSTALL_QML]/$$replace(uri, \\., /)
