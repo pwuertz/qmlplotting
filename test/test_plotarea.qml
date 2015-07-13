@@ -25,25 +25,6 @@ Rectangle {
         color: "#ccffffff"
         radius: 4
 
-        Rectangle {
-            id: plot_box_top
-            width: parent.width; height: plot_box_label.height + 4
-            border.width: 1
-            border.color: "black"
-            color: "#77ffffff"
-            radius: 4
-            Text {
-                x: 4; y: 2
-                id: plot_box_label
-                text: "XY Plot"
-            }
-            MouseArea {
-                anchors.fill: parent
-                drag.target: plot_box
-                drag.axis: Drag.XandYAxis
-            }
-        }
-
         ZoomPanArea {
             id: plotarea
             width: 630; height: 200
@@ -71,6 +52,28 @@ Rectangle {
                 lineWidth: 1.
                 lineColor: "#cc8888"
                 markerEnabled: false
+            }
+            SelectionBox {
+                id: selection_user
+            }
+        }
+
+        Rectangle {
+            id: plot_box_top
+            width: parent.width; height: plot_box_label.height + 4
+            border.width: 1
+            border.color: "black"
+            color: "#77ffffff"
+            radius: 4
+            Text {
+                x: 4; y: 2
+                id: plot_box_label
+                text: "XY Plot"
+            }
+            MouseArea {
+                anchors.fill: parent
+                drag.target: plot_box
+                drag.axis: Drag.XandYAxis
             }
         }
     }

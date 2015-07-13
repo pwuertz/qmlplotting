@@ -20,7 +20,7 @@ Item {
         maximumValue: max_slider.value
         colormap: "bwr"
 
-        SelectionBox {
+        SelectionBoxImg {
             id: selection_user
             objectName: "selection_user"
         }
@@ -94,7 +94,7 @@ Item {
                 anchors.fill: parent
                 anchors.margins: -1
             }
-            SelectionBox {rect: selection_user.rect; movable: false}
+            SelectionBoxImg {rect: selection_user.rect; movable: false}
         }
 
         ColormappedImage {
@@ -117,7 +117,7 @@ Item {
                 anchors.fill: parent
                 anchors.margins: -1
             }
-            SelectionBox {rect: selection_user.rect; movable: false}
+            SelectionBoxImg {rect: selection_user.rect; movable: false}
         }
 
         Rectangle {

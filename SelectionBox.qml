@@ -2,40 +2,50 @@ import QtQuick 2.0
 
 Item {
     id: selection
-    property rect rect: Qt.rect(.25, .25, .5, .5)
+    property rect selectRect: Qt.rect(.25, .25, .5, .5)
     property color color: "gray"
-    property Item image: parent
     property bool movable: true
 
     Connections {
-        target: image
-        onViewRectChanged: selection._update_position()
-        onWidthChanged: selection._update_position()
-        onHeightChanged: selection._update_position()
+        target: parent
+        onViewRectChanged: _update_position()
+        onWidthChanged: _update_position()
+        onHeightChanged: _update_position()
     }
-    onRectChanged: _update_position()
-    onImageChanged: _update_position()
+    onSelectRectChanged: _update_position()
 
     function _update_position() {
-        if (!image) return;
-        var srect = image.mapRectToScene(rect)
-        x = srect.x; y = srect.y; width = srect.width; height = srect.height
+        var wscale = parent.width / parent.viewRect.width
+        var hscale = parent.height / parent.viewRect.height
+        selection.x = (selectRect.x - parent.viewRect.x) * wscale
+        selection.y = parent.height - (selectRect.y + selectRect.height - parent.viewRect.y) * hscale
+        selection.width = selectRect.width * wscale
+        selection.height = selectRect.height * hscale
     }
 
-    // fade out background when selection fills the screen
-    onXChanged: _update_opacity()
-    onYChanged: _update_opacity()
-    onWidthChanged: _update_opacity()
-    onHeightChanged: _update_opacity()
-    function _update_opacity() {
-        var w = Math.min(x+width, image.width) - Math.max(x, 0)
-        var h = Math.min(y+height, image.height) - Math.max(y, 0)
-        var area = 0.
-        if (w > 0 && h > 0) {
-            area = w*h / (image.width*image.height)
-        }
-        var o = Math.min(1.-area, .3)
-        rectangle.color = Qt.rgba(color.r, color.g, color.b, o)
+    function mapPointFromScene(x, y) {
+        var wscale = parent.viewRect.width / parent.width
+        var hscale = parent.viewRect.height / parent.height
+        return Qt.point(
+                    parent.viewRect.x + (selection.x + x)*wscale,
+                    parent.viewRect.y + (parent.height - selection.y - y)*hscale
+        )
+    }
+
+    function mapDistanceFromScene(w, h) {
+        var wscale = parent.viewRect.width / parent.width
+        var hscale = parent.viewRect.height / parent.height
+        return Qt.point(w*wscale, h*hscale)
+    }
+
+    function mapRectFromScene(x, y, w, h) {
+        var wscale = parent.viewRect.width / parent.width
+        var hscale = parent.viewRect.height / parent.height
+        return Qt.rect(
+                    parent.viewRect.x + (selection.x + x)*wscale,
+                    (parent.height - selection.y - y)*hscale  - parent.viewRect.y + selectRect.height,
+                    w * wscale, h * hscale
+        )
     }
 
     // rectangle for visualizing the selection
@@ -54,7 +64,7 @@ Item {
         id: mouse_area
         anchors.fill: parent
         anchors.margins: -1
-        property point p_ref
+        property point p_ref: Qt.point(0, 0)
         property bool dragging: false
         hoverEnabled: true
         acceptedButtons: Qt.LeftButton
@@ -62,28 +72,21 @@ Item {
 
         onPressed: {
             dragging = true
-            p_ref = image.mapPointFromScene(Qt.point(parent.x+mouse.x, parent.y+mouse.y));
+            p_ref = mapPointFromScene(mouse.x, mouse.y)
         }
         onPositionChanged: {
             if (!dragging) return
-            var p_new = image.mapPointFromScene(Qt.point(parent.x+mouse.x, parent.y+mouse.y));
-            p_new.x = Math.min(Math.max(0., p_new.x), 1.)
-            p_new.y = Math.min(Math.max(0., p_new.y), 1.)
-            var old_rect = parent.rect
-            var rect = Qt.rect(
-                old_rect.x + p_new.x - p_ref.x, old_rect.y + p_new.y - p_ref.y,
-                old_rect.width, old_rect.height
-            );
-            rect.x = Math.max(Math.min(rect.x, 1.-rect.width), 0.)
-            rect.y = Math.max(Math.min(rect.y, 1.-rect.height), 0.)
-            parent.rect = rect;
+            var p_new = mapPointFromScene(mouse.x, mouse.y)
+            var delta = Qt.point(p_new.x - p_ref.x, p_new.y - p_ref.y)
+            var newSelectRect =
+            selectRect = Qt.rect(
+                        selectRect.x + delta.x,
+                        selectRect.y + delta.y,
+                        selectRect.width, selectRect.height
+            )
             p_ref = p_new;
         }
         onReleased: dragging = false
-        onDoubleClicked: {
-            image.viewAnimation = true
-            image.viewRect = selection.rect
-        }
     }
 
     // handle for resizing the selection
@@ -107,13 +110,12 @@ Item {
             }
             onPositionChanged: {
                 if (!dragging) return
-                var s_new_w = Math.max(parent.x + mouse.x, resize_handle.width)
-                var s_new_h = Math.max(parent.y + mouse.y, resize_handle.height)
-                var s_new_rect = Qt.rect(selection.x, selection.y, s_new_w, s_new_h)
-                var new_rect = image.mapRectFromScene(s_new_rect)
-                new_rect.width = Math.min(1. - new_rect.x, new_rect.width)
-                new_rect.height = Math.min(1. - new_rect.y, new_rect.height)
-                selection.rect = new_rect
+                var new_width = Math.max(resize_handle.x + mouse.x, resize_handle.width)
+                var new_height = Math.max(resize_handle.y + mouse.y, resize_handle.height)
+                var size = mapDistanceFromScene(new_width, new_height)
+                selectRect.y = selectRect.y + selectRect.height - size.y
+                selectRect.width = size.x;
+                selectRect.height = size.y;
             }
             onReleased: dragging = false
         }
