@@ -2,7 +2,7 @@ import QtQuick 2.0
 import qmlplotting 1.0
 
 Rectangle {
-    width: 640; height: 512
+    width: 900; height: 500
     color: "gray"
 
     DataSource {
@@ -18,44 +18,39 @@ Rectangle {
 
     Rectangle {
         id: plot_box
-        x: 5; y: 35
+        x: 90; y: 35
         width: plotarea.width + 2; height: plotarea.height + 2 + plot_box_top.height
         border.width: 1
         border.color: "black"
         color: "#ccffffff"
         radius: 4
 
-        ZoomPanArea {
+        PlotArea {
             id: plotarea
-            width: 630; height: 200
+            width: 800; height: 400
             y: plot_box_top.height
             x: 1
 
-            XYPlot {
-                id: xyplot1
-                objectName: "xyplot"
-                anchors.fill: parent
-                dataSource: source1
-                viewRect: parent.viewRect
-                lineEnabled: true
-                lineWidth: 1.
-                lineColor: "#8888cc"
-                markerEnabled: false
-            }
-            XYPlot {
-                id: xyplot2
-                objectName: "xyplot"
-                anchors.fill: parent
-                dataSource: source2
-                viewRect: parent.viewRect
-                lineEnabled: true
-                lineWidth: 1.
-                lineColor: "#cc8888"
-                markerEnabled: false
-            }
-            SelectionBox {
-                id: selection_user
-            }
+            plotItems: [
+                XYPlot {
+                    id: xyplot1
+                    objectName: "xyplot1"
+                    dataSource: source1
+                    lineEnabled: true
+                    lineWidth: 1
+                    lineColor: "#8888cc"
+                    markerEnabled: false
+                },
+                XYPlot {
+                    id: xyplot2
+                    objectName: "xyplot2"
+                    dataSource: source2
+                    lineEnabled: true
+                    lineWidth: 1
+                    lineColor: "#cc8888"
+                    markerEnabled: false
+                }
+            ]
         }
 
         Rectangle {

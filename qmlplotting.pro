@@ -29,7 +29,8 @@ QML_FILES += \
     ZoomPanImage.qml \
     ZoomPanArea.qml \
     SelectionBox.qml \
-    SelectionBoxImg.qml
+    SelectionBoxImg.qml \
+    PlotArea.qml
 
 OTHER_FILES = qmldir \
     test/test_image.qml \
