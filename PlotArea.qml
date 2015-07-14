@@ -3,33 +3,42 @@ import QtQuick.Layouts 1.1
 import qmlplotting 1.0
 
 Item {
+    id: plotarea
     width: 400
     height: 300
 
     property alias viewRect: zoom_pan_area.viewRect
+    property int tickXSpacing: 30
+    property int tickYSpacing: 30
+    property int tickPrecision: 2
+    property alias tickFont: text_metric_tick.font
+
+    Text {
+        id: text_metric_tick
+        visible: false
+        text: "-1000.00"
+    }
 
     QtObject {
         id: xticks
-        property real spacing: 10
-        property int tickWidth: 100
-        property int tickHeight: 20
-        property int precision: 2
-        property int numTicks: Math.max(Math.floor(zoom_pan_area.width / (tickWidth + spacing)) + 1, 2)
-        property real tickDiff: nicenum(viewRect.width / (numTicks - 1))
-        property real min: Math.floor(viewRect.x / tickDiff) * tickDiff
-        property real max: Math.ceil((viewRect.x + viewRect.width) / tickDiff) * tickDiff
+        property int spacing: plotarea.tickXSpacing
+        property int precision: plotarea.tickPrecision
+        property int maxTicks: Math.max(Math.floor(zoom_pan_area.width / (text_metric_tick.contentWidth + spacing)) + 1, 2)
+        property int numTicks: Math.ceil((viewRect.x + viewRect.width - min) / tickDiff)
+        property real tickDiff: nicenum(viewRect.width / (maxTicks - 1))
+        property real min: Math.ceil(viewRect.x / tickDiff) * tickDiff
+        property real max: min + numTicks * tickDiff
     }
 
     QtObject {
         id: yticks
-        property real spacing: 40
-        property int tickWidth: 50
-        property int tickHeight: 20
-        property int precision: 2
-        property int numTicks: Math.max(Math.floor(zoom_pan_area.height / (tickHeight + spacing)) + 1, 2)
-        property real tickDiff: nicenum(viewRect.height / (numTicks - 1))
-        property real min: Math.floor(viewRect.y / tickDiff) * tickDiff
-        property real max: Math.ceil((viewRect.y + viewRect.height) / tickDiff) * tickDiff
+        property real spacing: plotarea.tickYSpacing
+        property int precision: plotarea.tickPrecision
+        property int maxTicks: Math.max(Math.floor(zoom_pan_area.height / (text_metric_tick.contentHeight + spacing)) + 1, 2)
+        property int numTicks: Math.ceil((viewRect.y + viewRect.height - min) / tickDiff)
+        property real tickDiff: nicenum(viewRect.height / (maxTicks - 1))
+        property real min: Math.ceil(viewRect.y / tickDiff) * tickDiff
+        property real max: min + numTicks * tickDiff
     }
 
     function nicenum(range) {
@@ -47,7 +56,6 @@ Item {
     ZoomPanArea {
         id: zoom_pan_area
         anchors.fill: parent
-        clip: true
 
         Repeater {
             model: xticks.numTicks
@@ -73,10 +81,8 @@ Item {
         }
     }
 
-    Rectangle {
-        color: "transparent"
-        clip: true
-        height: xticks.tickHeight
+    Item {
+        height: text_metric_tick.contentHeight
         width: zoom_pan_area.width
         anchors.top: zoom_pan_area.bottom
         anchors.margins: 5
@@ -84,20 +90,19 @@ Item {
             model: xticks.numTicks
             delegate: Text {
                 property real tickVal: xticks.min + xticks.tickDiff * index
-                x: (tickVal - viewRect.x) * zoom_pan_area.width/viewRect.width - xticks.tickWidth*.5
+                x: (tickVal - viewRect.x) * zoom_pan_area.width/viewRect.width - text_metric_tick.contentWidth*.5
                 text: tickVal.toFixed(xticks.precision)
-                width: xticks.tickWidth
-                height: xticks.tickHeight
+                font: text_metric_tick.font
+                width: text_metric_tick.contentWidth
+                height: text_metric_tick.contentHeight
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignTop
             }
         }
     }
 
-    Rectangle {
-        color: "transparent"
-        clip: true
-        width: yticks.tickWidth
+    Item {
+        width: text_metric_tick.contentWidth
         height: zoom_pan_area.height
         anchors.right: zoom_pan_area.left
         anchors.margins: 8
@@ -105,10 +110,11 @@ Item {
             model: yticks.numTicks
             delegate: Text {
                 property real tickVal: yticks.min + yticks.tickDiff * index
-                y: zoom_pan_area.height - (tickVal - viewRect.y) * zoom_pan_area.height/viewRect.height - yticks.tickHeight*.5
+                y: zoom_pan_area.height - (tickVal - viewRect.y) * zoom_pan_area.height/viewRect.height - height*.5
                 text: tickVal.toFixed(yticks.precision)
-                width: yticks.tickWidth
-                height: yticks.tickHeight
+                font: text_metric_tick.font
+                width: text_metric_tick.contentWidth
+                height: text_metric_tick.contentHeight
                 horizontalAlignment: Text.AlignRight
                 verticalAlignment: Text.AlignVCenter
             }
