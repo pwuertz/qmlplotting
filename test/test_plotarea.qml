@@ -16,40 +16,15 @@ Rectangle {
         Component.onCompleted: setTestData1D()
     }
 
-    Rectangle {
-        id: plot_box
-        x: 90; y: 35
-        width: plotarea.width + 2; height: plotarea.height + 2 + plot_box_top.height
-        radius: 4
-        gradient: Gradient {
-            GradientStop { position: 0.0; color: "#dddddd" }
-            GradientStop { position: 1.0; color: "#ffffff" }
-        }
-        Rectangle {
-            id: plot_box_top
-            width: parent.width; height: plot_box_label.height + 4
-            radius: 4
-            gradient: Gradient {
-                GradientStop { position: 1.0; color: "#ffffff" }
-                GradientStop { position: 0.0; color: "#dddddd" }
-            }
-            Text {
-                x: 4; y: 2
-                id: plot_box_label
-                text: "Plot Area"
-            }
-            MouseArea {
-                anchors.fill: parent
-                drag.target: plot_box
-                drag.axis: Drag.XandYAxis
-            }
-        }
+    Window {
+        title: "Plot Area"
+        x: 10
+        y: 10
 
         PlotArea {
             id: plotarea
-            width: 800; height: 400
-            y: plot_box_top.height
-            x: 1
+            width: 800
+            height: 400
 
             axesBackgroundColor: "transparent"
             axesBorderColor: "#33000000"
@@ -77,5 +52,4 @@ Rectangle {
             ]
         }
     }
-
 }

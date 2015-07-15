@@ -120,34 +120,12 @@ Item {
             SelectionBoxImg {rect: selection_user.rect; movable: false}
         }
 
-        Rectangle {
-            id: slider_box
-            width: sliders.width + 10; height: sliders.height + 10 + slider_box_top.height
-            border.width: 1
-            border.color: "black"
-            color: "#77ffffff"
-            radius: 4
+        Window {
+            title: "Minimum / Maximum"
+            color: "#cceeeeee"
+            flat: true
 
-            Rectangle {
-                id: slider_box_top
-                width: parent.width; height: slider_box_label.height + 4
-                border.width: 1
-                border.color: "black"
-                color: "#77ffffff"
-                radius: 4
-                Text {
-                    x: 4; y: 2
-                    id: slider_box_label
-                    text: "Minimum / Maximum"
-                }
-                MouseArea {
-                    anchors.fill: parent
-                    drag.target: slider_box
-                    drag.axis: Drag.XandYAxis
-                }
-            }
             Column {
-                x: 5; y: slider_box_top.height + 5
                 id: sliders
                 spacing: 5
                 Slider {
@@ -168,35 +146,14 @@ Item {
         }
     }
 
-    Rectangle {
-        id: plot_box
-        x: 3; y: 370
-        width: plots.width; height: plot_box_top.height + plots.height
-        border.width: 1
-        border.color: "black"
-        color: "#77ffffff"
-        radius: 4
+    Window {
+        x: 3
+        y: 370
+        title: "Linescan"
+        color: "#cceeeeee"
+        flat: true
 
-        Rectangle {
-            id: plot_box_top
-            width: parent.width; height: plot_box_label.height + 4
-            border.width: 1
-            border.color: "black"
-            color: "#77ffffff"
-            radius: 4
-            Text {
-                x: 4; y: 2
-                id: plot_box_label
-                text: "Linescan"
-            }
-            MouseArea {
-                anchors.fill: parent
-                drag.target: plot_box
-                drag.axis: Drag.XandYAxis
-            }
-        }
         Item {
-            y: plot_box_top.height
             width: 302
             height: 80
             id: plots

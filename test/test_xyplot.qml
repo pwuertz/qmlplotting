@@ -4,7 +4,7 @@ import QtQuick.Controls 1.1
 import qmlplotting 1.0
 
 Rectangle {
-    width: 640; height: 512
+    width: 640; height: 302
     color: "gray"
 
     DataSource {
@@ -19,40 +19,15 @@ Rectangle {
         onClicked: source.setTestData1D()
     }
 
-    Rectangle {
-        id: plot_box
-        x: 5; y: 35
-        width: xyplot.width + 2; height: xyplot.height + 2 + plot_box_top.height
-        border.width: 1
-        border.color: "black"
-        color: "#99ffffff"
-        radius: 4
-
-        Rectangle {
-            id: plot_box_top
-            width: parent.width; height: plot_box_label.height + 4
-            border.width: 1
-            border.color: "black"
-            color: "#77ffffff"
-            radius: 4
-            Text {
-                x: 4; y: 2
-                id: plot_box_label
-                text: "XY Plot"
-            }
-            MouseArea {
-                anchors.fill: parent
-                drag.target: plot_box
-                drag.axis: Drag.XandYAxis
-            }
-        }
+    Window {
+        x: 5
+        y: 35
+        title: "XY Plot"
 
         XYPlot {
             id: xyplot
             objectName: "xyplot"
             width: 630; height: 200
-            y: plot_box_top.height
-            x: 1
             dataSource: source
             viewRect: Qt.rect(min_slider.value, 0., max_slider.value-min_slider.value, 1.1)
             fillEnabled: true
@@ -68,36 +43,14 @@ Rectangle {
         }
     }
 
-    Rectangle {
-        id: slider_box
-        x: 10
-        y: 270
-        width: sliders.width + 10; height: sliders.height + 10 + slider_box_top.height
-        border.width: 1
-        border.color: "black"
-        color: "#77ffffff"
-        radius: 4
+    Window {
+        x: 350
+        y: 200
+        title: "Plot Range"
+        color: "#cceeeeee"
+        flat: true
 
-        Rectangle {
-            id: slider_box_top
-            width: parent.width; height: slider_box_label.height + 4
-            border.width: 1
-            border.color: "black"
-            color: "#77ffffff"
-            radius: 4
-            Text {
-                x: 4; y: 2
-                id: slider_box_label
-                text: "Plot Range"
-            }
-            MouseArea {
-                anchors.fill: parent
-                drag.target: slider_box
-                drag.axis: Drag.XandYAxis
-            }
-        }
         Column {
-            x: 5; y: slider_box_top.height + 5
             id: sliders
             spacing: 5
             Slider {
