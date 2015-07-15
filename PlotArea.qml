@@ -9,7 +9,6 @@ Item {
     property alias viewRect: zoom_pan_area.viewRect
     property int tickXSpacing: 30
     property int tickYSpacing: 30
-    property int tickPrecision: 2
     property bool tickXGrid: true
     property bool tickYGrid: true
     property bool tickXMarker: true
@@ -30,7 +29,7 @@ Item {
     QtObject {
         id: xticks
         property int spacing: plotarea.tickXSpacing
-        property int precision: plotarea.tickPrecision
+        property int precision: niceprecision(viewRect.width / (maxTicks - 1))
         property int maxTicks: Math.max(Math.floor(zoom_pan_area.width / (text_metric_tick.contentWidth + spacing)) + 1, 2)
         property int numTicks: Math.ceil((viewRect.x + viewRect.width - min) / tickDiff)
         property real tickDiff: nicenum(viewRect.width / (maxTicks - 1))
@@ -41,7 +40,7 @@ Item {
     QtObject {
         id: yticks
         property real spacing: plotarea.tickYSpacing
-        property int precision: plotarea.tickPrecision
+        property int precision: niceprecision(viewRect.height / (maxTicks - 1))
         property int maxTicks: Math.max(Math.floor(zoom_pan_area.height / (text_metric_tick.contentHeight + spacing)) + 1, 2)
         property int numTicks: Math.ceil((viewRect.y + viewRect.height - min) / tickDiff)
         property real tickDiff: nicenum(viewRect.height / (maxTicks - 1))
@@ -59,6 +58,11 @@ Item {
         else if (fraction <= 5)   nicefrac = 5;
         else                      nicefrac = 10;
         return nicefrac * Math.pow(10, exponent);
+    }
+
+    function niceprecision(range) {
+        var exponent = Math.floor(Math.log(range) / Math.LN10);
+        return Math.max(-exponent, 0)
     }
 
     Grid {
