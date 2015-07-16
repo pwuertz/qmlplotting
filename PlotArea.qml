@@ -1,10 +1,11 @@
 import QtQuick 2.0
 import qmlplotting 1.0
 
-Item {
+Rectangle {
     id: plotarea
     width: 400
     height: 300
+    color: "transparent"
 
     property alias viewRect: zoom_pan_area.viewRect
     property int tickXSpacing: 30
@@ -106,7 +107,6 @@ Item {
                     Rectangle {
                         visible: tickXGrid
                         color: plotarea.gridColor
-                        parent: zoom_pan_area
                         x: tickPos
                         y: zoom_pan_area.height - height
                         z: -1
@@ -116,7 +116,6 @@ Item {
                     Rectangle {
                         visible: tickXMarker
                         color: plotarea.textColor
-                        parent: zoom_pan_area
                         x: tickPos
                         y: zoom_pan_area.height - height
                         z: 1
@@ -135,7 +134,6 @@ Item {
                     Rectangle {
                         visible: tickYGrid
                         color: plotarea.gridColor
-                        parent: zoom_pan_area
                         x: 0
                         y: tickPos
                         z: -1
@@ -145,7 +143,6 @@ Item {
                     Rectangle {
                         visible: tickXMarker
                         color: plotarea.textColor
-                        parent: zoom_pan_area
                         x: 0
                         y: tickPos
                         z: 1
