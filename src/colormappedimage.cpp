@@ -92,6 +92,7 @@ public:
     QSGDataTexture<float> m_texture_cmap;
     double m_amplitude;
     double m_offset;
+    QSGTexture::Filtering m_filter;
 };
 
 class QSQColormapShader : public QSGMaterialShader
@@ -174,6 +175,7 @@ public:
         material->m_texture_cmap.bind();
         functions->glActiveTexture(GL_TEXTURE0);
         program()->setUniformValue(m_id_image, 0);
+        material->m_texture_image->setFiltering(material->m_filter);
         material->m_texture_image->bind();
     }
 
@@ -205,7 +207,7 @@ ColormappedImage::ColormappedImage(QQuickItem *parent) :
     DataClient(parent),
     m_min_value(0.), m_max_value(1.),
     m_view_rect(0, 0, 1, 1), m_view_invert(false),
-    m_new_colormap(false), m_texture_cmap(nullptr)
+    m_new_colormap(false), m_texture_cmap(nullptr), m_filter(QSGTexture::Linear)
 {
     setFlag(QQuickItem::ItemHasContents);
 }
@@ -260,6 +262,20 @@ void ColormappedImage::setColormap(const QString &colormap)
     update();
 }
 
+void ColormappedImage::setFilter(const QString &filter)
+{
+    QSGTexture::Filtering new_filter = (filter == "linear") ? QSGTexture::Linear : QSGTexture::Nearest;
+    if (new_filter == m_filter) return;
+    m_filter = new_filter;
+    emit filterChanged(getFilter());
+    update();
+}
+
+QString ColormappedImage::getFilter() const
+{
+    return (m_filter == QSGTexture::Linear) ? "linear" : "nearest";
+}
+
 QPointF ColormappedImage::mapPointFromScene(const QPointF &spoint) const
 {
     double wscale = m_view_rect.width() / width();
@@ -297,6 +313,7 @@ QRectF ColormappedImage::mapRectToScene(const QRectF &vrect) const
 }
 
 static void updateColormapTexture(QSGDataTexture<float>& t, const QString& colormap) {
+    t.setFiltering(QSGTexture::Linear);
     // default colormap
     double* data = cmap_gray;
     int numpoints = sizeof(cmap_gray) / (3*sizeof(double));
@@ -399,6 +416,7 @@ QSGNode *ColormappedImage::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNo
     // update material parameters
     material->m_amplitude = 1. / (m_max_value - m_min_value);
     material->m_offset = -m_min_value;
+    material->m_filter = m_filter;
 
     // check for data source change
     if (m_new_source) {

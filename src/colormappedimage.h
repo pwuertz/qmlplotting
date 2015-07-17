@@ -11,6 +11,7 @@ class ColormappedImage : public DataClient
     Q_PROPERTY(QRectF viewRect MEMBER m_view_rect WRITE setViewRect NOTIFY viewRectChanged)
     Q_PROPERTY(bool viewInvert MEMBER m_view_invert WRITE setViewInvert NOTIFY viewInvertChanged)
     Q_PROPERTY(QString colormap MEMBER m_colormap WRITE setColormap NOTIFY colormapChanged)
+    Q_PROPERTY(QString filter READ getFilter WRITE setFilter NOTIFY filterChanged)
 
 public:
     explicit ColormappedImage(QQuickItem *parent = 0);
@@ -21,6 +22,8 @@ public:
     void setViewRect(const QRectF& viewrect);
     void setViewInvert(bool invert);
     void setColormap(const QString& colormap);
+    void setFilter(const QString& filter);
+    QString getFilter() const;
 
 public slots:
     QPointF mapPointFromScene(const QPointF& spoint) const;
@@ -34,6 +37,7 @@ signals:
     void viewRectChanged(const QRectF& viewrect);
     void viewInvertChanged(bool invert);
     void colormapChanged(const QString& colormap);
+    void filterChanged(const QString& filter);
 
 protected:
     virtual QSGNode* updatePaintNode(QSGNode *, UpdatePaintNodeData *);
@@ -46,6 +50,7 @@ private:
     QString m_colormap;
     bool m_new_colormap;
     QSGTexture* m_texture_cmap;
+    QSGTexture::Filtering m_filter;
 };
 
 
