@@ -386,6 +386,8 @@ QSGNode *ColormappedImage::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNo
             y1 = (m_view_rect.y() + m_view_rect.height());
             y2 = m_view_rect.y();
         }
+        bool blend = (x1 < 0) || (x1 > 1) || (x2 < 0) || (x2 > 1) || (y1 < 0) || (y1 > 1) || (y2 < 0) || (y2 > 1);
+        material->setFlag(QSGMaterial::Blending, blend);
         geometry->vertexDataAsTexturedPoint2D()[0].set(0, 0, x1, y1);
         geometry->vertexDataAsTexturedPoint2D()[1].set(0, h, x1, y2);
         geometry->vertexDataAsTexturedPoint2D()[2].set(w, 0, x2, y1);
