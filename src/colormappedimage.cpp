@@ -204,7 +204,7 @@ inline QSGMaterialShader* QSQColormapMaterial::createShader() const { return new
 ColormappedImage::ColormappedImage(QQuickItem *parent) :
     DataClient(parent),
     m_min_value(0.), m_max_value(1.),
-    m_view_rect(0, 0, 1, 1),
+    m_view_rect(0, 0, 1, 1), m_view_invert(false),
     m_new_colormap(false), m_texture_cmap(nullptr)
 {
     setFlag(QQuickItem::ItemHasContents);
@@ -239,6 +239,15 @@ void ColormappedImage::setViewRect(const QRectF &viewrect)
     m_view_rect = viewrect;
     m_new_geometry = true;
     emit viewRectChanged(m_view_rect);
+    update();
+}
+
+void ColormappedImage::setViewInvert(bool invert)
+{
+    if (invert == m_view_invert) return;
+    m_view_invert = invert;
+    m_new_geometry = true;
+    emit viewInvertChanged(m_view_invert);
     update();
 }
 
@@ -369,8 +378,14 @@ QSGNode *ColormappedImage::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNo
         double h = height();
         double x1 = m_view_rect.x();
         double x2 = x1 + m_view_rect.width();
-        double y1 = m_view_rect.y();
-        double y2 = y1 + m_view_rect.height();
+        double y1, y2;
+        if (!m_view_invert) {
+            y1 = m_view_rect.y();
+            y2 = y1 + m_view_rect.height();
+        } else {
+            y1 = (m_view_rect.y() + m_view_rect.height());
+            y2 = m_view_rect.y();
+        }
         geometry->vertexDataAsTexturedPoint2D()[0].set(0, 0, x1, y1);
         geometry->vertexDataAsTexturedPoint2D()[1].set(0, h, x1, y2);
         geometry->vertexDataAsTexturedPoint2D()[2].set(w, 0, x2, y1);
