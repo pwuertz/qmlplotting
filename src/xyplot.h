@@ -17,6 +17,7 @@ class XYPlot : public DataClient
     Q_PROPERTY(double markerSize MEMBER m_markersize WRITE setMarkerSize NOTIFY markerSizeChanged)
     Q_PROPERTY(QColor markerColor MEMBER m_markercolor WRITE setMarkerColor NOTIFY markerColorChanged)
     Q_PROPERTY(bool markerBorder MEMBER m_markerborder WRITE setMarkerBorder NOTIFY markerBorderChanged)
+    Q_PROPERTY(bool logY MEMBER m_logy WRITE setLogY NOTIFY logYChanged)
 
 public:
     explicit XYPlot(QQuickItem *parent = 0);
@@ -33,6 +34,7 @@ public:
     void setMarkerSize(double size);
     void setMarkerColor(const QColor& color);
     void setMarkerBorder(bool enabled);
+    void setLogY(bool enabled);
 
 signals:
     void viewRectChanged(const QRectF& viewrect);
@@ -46,6 +48,7 @@ signals:
     void markerSizeChanged(double);
     void markerColorChanged(const QColor&);
     void markerBorderChanged(bool);
+    void logYChanged(bool);
 
 protected:
     virtual QSGNode* updatePaintNode(QSGNode *, UpdatePaintNodeData *);
@@ -62,6 +65,7 @@ private:
     double m_markersize;
     QColor m_markercolor;
     bool m_markerborder;
+    bool m_logy;
 };
 
 #endif // XYPLOT_H

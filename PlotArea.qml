@@ -20,6 +20,7 @@ Rectangle {
     property int axesBorderWidth: 1
     property color axesBorderColor: "black"
     property color axesBackgroundColor: "transparent"
+    property bool logY: false
 
     Text {
         id: text_metric_tick
@@ -33,7 +34,7 @@ Rectangle {
         property int precision: niceprecision(viewRect.width / (maxTicks - 1))
         property int maxTicks: Math.max(Math.floor(zoom_pan_area.width / (text_metric_tick.contentWidth + spacing)) + 1, 2)
         property int numTicks: Math.ceil((viewRect.x + viewRect.width - min) / tickDiff)
-        property real tickDiff: nicenum(viewRect.width / (maxTicks - 1))
+        property real tickDiff: nicenum(viewRect.width / (maxTicks - 1), false)
         property real min: Math.ceil(viewRect.x / tickDiff) * tickDiff
         property real max: min + numTicks * tickDiff
     }
@@ -44,12 +45,12 @@ Rectangle {
         property int precision: niceprecision(viewRect.height / (maxTicks - 1))
         property int maxTicks: Math.max(Math.floor(zoom_pan_area.height / (text_metric_tick.contentHeight + spacing)) + 1, 2)
         property int numTicks: Math.ceil((viewRect.y + viewRect.height - min) / tickDiff)
-        property real tickDiff: nicenum(viewRect.height / (maxTicks - 1))
+        property real tickDiff: nicenum(viewRect.height / (maxTicks - 1), logY)
         property real min: Math.ceil(viewRect.y / tickDiff) * tickDiff
         property real max: min + numTicks * tickDiff
     }
 
-    function nicenum(range) {
+    function nicenum(range, pow10) {
         var exponent = Math.floor(Math.log(range) / Math.LN10);
         var fraction = range / Math.pow(10, exponent);
         var nicefrac;
@@ -58,7 +59,11 @@ Rectangle {
         else if (fraction <= 2.5) nicefrac = 2.5;
         else if (fraction <= 5)   nicefrac = 5;
         else                      nicefrac = 10;
-        return nicefrac * Math.pow(10, exponent);
+        var result = nicefrac * Math.pow(10, exponent);
+        if (pow10)
+            return Math.max(1, result)
+        else
+            return result
     }
 
     function niceprecision(range) {
@@ -82,7 +87,7 @@ Rectangle {
                 delegate: Text {
                     property real tickVal: yticks.min + yticks.tickDiff * index
                     y: zoom_pan_area.height - (tickVal - viewRect.y) * zoom_pan_area.height/viewRect.height - height*.5
-                    text: tickVal.toFixed(yticks.precision)
+                    text: logY ? Math.pow(10, tickVal).toExponential() : tickVal.toFixed(yticks.precision)
                     font: text_metric_tick.font
                     color: plotarea.textColor
                     width: text_metric_tick.contentWidth
@@ -206,6 +211,7 @@ Rectangle {
             plotItems[i].parent = zoom_pan_area;
             plotItems[i].anchors.fill = zoom_pan_area;
             plotItems[i].viewRect = Qt.binding(function() {return zoom_pan_area.viewRect})
+            plotItems[i].logY = Qt.binding(function() {return plotarea.logY})
         }
     }
 }

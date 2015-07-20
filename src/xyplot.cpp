@@ -324,7 +324,8 @@ XYPlot::XYPlot(QQuickItem *parent) :
     m_markersegments(0),
     m_markersize(5.),
     m_markercolor(0., 0., 0.),
-    m_markerborder(false)
+    m_markerborder(false),
+    m_logy(false)
 {
     setFlag(QQuickItem::ItemHasContents);
     setClip(true);
@@ -415,6 +416,15 @@ void XYPlot::setMarkerBorder(bool enabled)
     if (m_markerborder == enabled) return;
     m_markerborder = enabled;
     emit markerBorderChanged(m_markerborder);
+    update();
+}
+
+void XYPlot::setLogY(bool enabled)
+{
+    if (m_logy == enabled) return;
+    m_logy = enabled;
+    emit logYChanged(m_logy);
+    m_new_data = true;
     update();
 }
 
@@ -669,14 +679,26 @@ QSGNode *XYPlot::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNodeData *)
 
     if (m_line && !n_line->m_data_valid) {
         float* ldst = static_cast<float*>(lgeometry->vertexData());
-        for (int i = 0; i < num_data_points*2; ++i) ldst[i] = src[i];
+        if (m_logy)
+            for (int i = 0; i < num_data_points; ++i) {
+                ldst[i*2 + 0] = src[i*2 + 0];
+                ldst[i*2 + 1] = log10(src[i*2 + 1]);
+            }
+        else
+            for (int i = 0; i < num_data_points*2; ++i) ldst[i] = src[i];
         dirty_state |= QSGNode::DirtyGeometry;
         n_line->m_data_valid = true;
     }
 
     if (m_marker && !n_marker->m_data_valid) {
         float* mdst = static_cast<float*>(mgeometry->vertexData());
-        for (int i = 0; i < num_data_points*2; ++i) mdst[i] = src[i];
+        if (m_logy)
+            for (int i = 0; i < num_data_points; ++i) {
+                mdst[i*2 + 0] = src[i*2 + 0];
+                mdst[i*2 + 1] = log10(src[i*2 + 1]);
+            }
+        else
+            for (int i = 0; i < num_data_points*2; ++i) mdst[i] = src[i];
         dirty_state |= QSGNode::DirtyGeometry;
         n_marker->m_data_valid = true;
     }
