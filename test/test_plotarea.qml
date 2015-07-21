@@ -18,11 +18,13 @@ Rectangle {
 
     Window {
         title: "Plot Area"
+        objectName: "plotwindow"
         x: 10
         y: 10
 
         PlotArea {
             id: plotarea
+            objectName: "plotarea"
             width: 800
             height: 400
 
