@@ -46,8 +46,37 @@ Rectangle {
         property int maxTicks: Math.max(Math.floor(zoom_pan_area.height / (text_metric_tick.contentHeight + spacing)) + 1, 2)
         property int numTicks: Math.ceil((viewRect.y + viewRect.height - min) / tickDiff)
         property real tickDiff: nicenum(viewRect.height / (maxTicks - 1), logY)
-        property real min: Math.ceil(viewRect.y / tickDiff) * tickDiff
+        property real min: Math.floor(viewRect.y / tickDiff) * tickDiff
         property real max: min + numTicks * tickDiff
+        property var tickVals: new_tick_vals(min, max, tickDiff, numTicks, viewRect, zoom_pan_area.height)
+        function new_tick_vals(min, max, diff, n, viewRect, height) {
+            var newVals = []
+            var newMajor = []
+            var newGrid = []
+            for (var i=0; i<n; ++i) {
+                var val = min + diff * i
+                var y = height - (val - viewRect.y) * height/viewRect.height
+                if (y > 0 && y < height) {
+                    newVals.push(val)
+                    newMajor.push(y)
+                    newGrid.push(y)
+                }
+                if (logY) {
+                    for (var j=2; j<10; ++j) {
+                        var val_minor = val + Math.log(j)/Math.LN10 * diff
+                        var y_minor = height - (val_minor - viewRect.y) * height/viewRect.height
+                        if ((y_minor > 0) && (y_minor < height)) {
+                            newGrid.push(y_minor)
+                        }
+                    }
+                }
+            }
+            tickPosMajor = newMajor
+            tickPosGrid = newGrid
+            return newVals
+        }
+        property var tickPosMajor
+        property var tickPosGrid
     }
 
     function nicenum(range, pow10) {
@@ -61,7 +90,7 @@ Rectangle {
         else                      nicefrac = 10;
         var result = nicefrac * Math.pow(10, exponent);
         if (pow10)
-            return Math.max(1, result)
+            return Math.ceil(Math.max(1, result))
         else
             return result
     }
@@ -83,10 +112,10 @@ Rectangle {
             width: text_metric_tick.contentWidth
             height: zoom_pan_area.height
             Repeater {
-                model: yticks.numTicks
+                model: Math.min(yticks.tickPosMajor.length, yticks.tickVals.length)
                 delegate: Text {
-                    property real tickVal: yticks.min + yticks.tickDiff * index
-                    y: zoom_pan_area.height - (tickVal - viewRect.y) * zoom_pan_area.height/viewRect.height - height*.5
+                    y: yticks.tickPosMajor[index] - .5*height
+                    property real tickVal: yticks.tickVals[index]
                     text: logY ? Math.pow(10, tickVal).toExponential() : tickVal.toFixed(yticks.precision)
                     font: text_metric_tick.font
                     color: plotarea.textColor
@@ -132,24 +161,22 @@ Rectangle {
 
             // ytick grid and markers
             Repeater {
-                model: yticks.numTicks
+                model: yticks.tickPosGrid
                 delegate: Item {
-                    property real tickVal: yticks.min + yticks.tickDiff * index
-                    property real tickPos: zoom_pan_area.height - (tickVal - viewRect.y) * zoom_pan_area.height/viewRect.height
                     Rectangle {
                         visible: tickYGrid
                         color: plotarea.gridColor
                         x: 0
-                        y: tickPos
+                        y: modelData
                         z: -1
                         height: 1
                         width: zoom_pan_area.width
                     }
                     Rectangle {
-                        visible: tickXMarker
+                        visible: tickYMarker
                         color: plotarea.textColor
                         x: 0
-                        y: tickPos
+                        y: modelData
                         z: 1
                         height: 1
                         width: 10
