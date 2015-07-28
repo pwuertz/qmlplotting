@@ -238,7 +238,9 @@ Rectangle {
             plotItems[i].parent = zoom_pan_area;
             plotItems[i].anchors.fill = zoom_pan_area;
             plotItems[i].viewRect = Qt.binding(function() {return zoom_pan_area.viewRect})
-            plotItems[i].logY = Qt.binding(function() {return plotarea.logY})
+            if ("logY" in plotItems[i]) {
+                plotItems[i].logY = Qt.binding(function() {return plotarea.logY})
+            }
         }
     }
 }
