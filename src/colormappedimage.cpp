@@ -100,8 +100,8 @@ class QSQColormapShader : public QSGMaterialShader
 public:
     const char *vertexShader() const {
         return GLSL(130,
-            attribute highp vec4 vertex;
-            attribute highp vec2 texcoord;
+            in highp vec4 vertex;
+            in highp vec2 texcoord;
             uniform highp mat4 matrix;
             out highp vec2 coord;
 
@@ -366,7 +366,6 @@ QSGNode *ColormappedImage::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNo
         // create child node if there is a data source
         n_geom = new QSGGeometryNode();
         n_geom->setFlag(QSGNode::OwnedByParent);
-        n->appendChildNode(n_geom);
         // inintialize geometry
         geometry = new QSGGeometry(QSGGeometry::defaultAttributes_TexturedPoint2D(), 4);
         geometry->setDrawingMode(GL_TRIANGLE_STRIP);
@@ -380,6 +379,8 @@ QSGNode *ColormappedImage::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNo
         n_geom->setFlag(QSGNode::OwnsMaterial);
         // force colormap initialization
         m_new_colormap = true;
+        //
+        n->appendChildNode(n_geom);
     }
 
     // ** graph node and data source can be considered valid from here on **

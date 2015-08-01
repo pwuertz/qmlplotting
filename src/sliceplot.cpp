@@ -119,7 +119,7 @@ public:
 
     const char *vertexShader() const {
         return GLSL(130,
-            attribute highp vec2 vertex;
+            in highp vec2 vertex;
             uniform sampler2D data;
             uniform highp float width;
             uniform highp float height;
@@ -162,7 +162,7 @@ public:
 
     const char *vertexShader() const {
         return GLSL(130,
-            attribute highp vec2 vertex;
+            in highp vec2 vertex;
             uniform sampler2D data;
             uniform highp float width;
             uniform highp float height;
@@ -309,7 +309,6 @@ QSGNode *SlicePlot::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNodeData 
         // create child node if there is a data source
         n_geom = new QSGGeometryNode();
         n_geom->setFlag(QSGNode::OwnedByParent);
-        n->appendChildNode(n_geom);
         // inintialize geometry & material
         if (m_filled) {
             geometry = new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), 0);
@@ -327,6 +326,8 @@ QSGNode *SlicePlot::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNodeData 
         n_geom->setFlag(QSGNode::OwnsGeometry);
         n_geom->setMaterial(material);
         n_geom->setFlag(QSGNode::OwnsMaterial);
+        //
+        n->appendChildNode(n_geom);
     }
 
     // ** graph node and data source can be considered valid from here on **

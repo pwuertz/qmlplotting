@@ -39,7 +39,7 @@ class XYMarkerMaterialShader : public QSGMaterialShader
 public:
     const char *vertexShader() const {
         return GLSL(130,
-            attribute highp vec4 vertex;
+            in highp vec4 vertex;
             uniform highp mat4 matrix;
             uniform highp vec2 size;
             uniform highp vec2 scale;
@@ -148,7 +148,7 @@ class XYLineMaterialShader : public QSGMaterialShader
 public:
     const char *vertexShader() const {
         return GLSL(130,
-            attribute highp vec4 vertex;
+            in highp vec4 vertex;
             uniform highp mat4 matrix;
             uniform highp vec2 size;
             uniform highp vec2 scale;
@@ -238,7 +238,7 @@ class XYFillMaterialShader : public QSGMaterialShader
 public:
     const char *vertexShader() const {
         return GLSL(130,
-            attribute highp vec4 vertex;
+            in highp vec4 vertex;
             uniform highp mat4 matrix;
             uniform highp vec2 size;
             uniform highp vec2 scale;
