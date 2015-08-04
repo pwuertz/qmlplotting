@@ -23,7 +23,7 @@ ColormappedImage {
     Menu {
         id: colormenu
         Instantiator {
-            model: ["wjet", "jet", "hot", "bwr", "gray"]
+            model: ["wjet", "jet", "hot", "bwr", "viridis", "ferrugineus", "gray"]
             MenuItem {
                 text: modelData
                 checkable: true
