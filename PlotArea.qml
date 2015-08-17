@@ -1,4 +1,5 @@
-import QtQuick 2.0
+import QtQuick 2.4
+import QtQuick.Layouts 1.1
 import qmlplotting 1.0
 
 Rectangle {
@@ -8,8 +9,12 @@ Rectangle {
     color: "transparent"
 
     property alias viewRect: zoom_pan_area.viewRect
+    property string xLabel: ""
+    property string yLabel: ""
     property int tickXSpacing: 30
     property int tickYSpacing: 30
+    property bool tickXLabels: true
+    property bool tickYLabels: true
     property bool tickXGrid: true
     property bool tickYGrid: true
     property bool tickXMarker: true
@@ -22,9 +27,8 @@ Rectangle {
     property color axesBackgroundColor: "transparent"
     property bool logY: false
 
-    Text {
+    TextMetrics {
         id: text_metric_tick
-        visible: false
         text: "-1000.00"
     }
 
@@ -32,7 +36,7 @@ Rectangle {
         id: xticks
         property int spacing: plotarea.tickXSpacing
         property int precision: niceprecision(viewRect.width / (maxTicks - 1))
-        property int maxTicks: Math.max(Math.floor(zoom_pan_area.width / (text_metric_tick.contentWidth + spacing)) + 1, 2)
+        property int maxTicks: Math.max(Math.floor(zoom_pan_area.width / (text_metric_tick.width + spacing)) + 1, 2)
         property int numTicks: Math.ceil((viewRect.x + viewRect.width - min) / tickDiff)
         property real tickDiff: nicenum(viewRect.width / (maxTicks - 1), false)
         property real min: Math.ceil(viewRect.x / tickDiff) * tickDiff
@@ -43,7 +47,7 @@ Rectangle {
         id: yticks
         property real spacing: plotarea.tickYSpacing
         property int precision: niceprecision(viewRect.height / (maxTicks - 1))
-        property int maxTicks: Math.max(Math.floor(zoom_pan_area.height / (text_metric_tick.contentHeight + spacing)) + 1, 2)
+        property int maxTicks: Math.max(Math.floor(zoom_pan_area.height / (text_metric_tick.height + spacing)) + 1, 2)
         property int numTicks: Math.ceil((viewRect.y + viewRect.height - min) / tickDiff)
         property real tickDiff: nicenum(viewRect.height / (maxTicks - 1), logY)
         property real min: Math.floor(viewRect.y / tickDiff) * tickDiff
@@ -100,17 +104,40 @@ Rectangle {
         return Math.max(-exponent, 0)
     }
 
-    Grid {
+    GridLayout {
         anchors.fill: parent
         anchors.margins: 10
-        rows: 2
-        columns: 2
-        spacing: 6
+        columns: 3
+        rowSpacing: 5
+        columnSpacing: 5
+
+        Item {
+            // ylabel
+            width: text_metric_tick.height
+            visible: yLabel
+
+            Layout.row: 0
+            Layout.column: 0
+            Layout.fillHeight: true
+
+            Text {
+                anchors.centerIn: parent
+                text: yLabel
+                rotation: -90
+                font: text_metric_tick.font
+                color: plotarea.textColor
+            }
+        }
 
         Item {
             id: yticks_item
-            width: text_metric_tick.contentWidth
-            height: zoom_pan_area.height
+            width: text_metric_tick.width
+            visible: tickYLabels
+
+            Layout.row: 0
+            Layout.column: 1
+            Layout.fillHeight: true
+
             Repeater {
                 model: Math.min(yticks.tickPosMajor.length, yticks.tickVals.length)
                 delegate: Text {
@@ -119,8 +146,8 @@ Rectangle {
                     text: logY ? Math.pow(10, tickVal).toExponential() : tickVal.toFixed(yticks.precision)
                     font: text_metric_tick.font
                     color: plotarea.textColor
-                    width: text_metric_tick.contentWidth
-                    height: text_metric_tick.contentHeight
+                    width: text_metric_tick.width
+                    height: text_metric_tick.height
                     horizontalAlignment: Text.AlignRight
                     verticalAlignment: Text.AlignVCenter
                 }
@@ -129,8 +156,10 @@ Rectangle {
 
         ZoomPanArea {
             id: zoom_pan_area
-            width: parent.width - yticks_item.width - parent.spacing
-            height: parent.height - xticks_item.height - parent.spacing
+            Layout.row: 0
+            Layout.column: 2
+            Layout.fillHeight: true
+            Layout.fillWidth: true
 
             // xtick grid and markers
             Repeater {
@@ -200,28 +229,44 @@ Rectangle {
         }
 
         Item {
-            width: yticks_item.width
-            height: xticks_item.height
-        }
-
-        Item {
-            visible: true
             id: xticks_item
-            height: text_metric_tick.contentHeight
-            width: zoom_pan_area.width
+            height: text_metric_tick.height
+            visible: tickXLabels
+
+            Layout.row: 1
+            Layout.column: 2
+            Layout.fillWidth: true
+
             Repeater {
                 model: xticks.numTicks
                 delegate: Text {
                     property real tickVal: xticks.min + xticks.tickDiff * index
-                    x: (tickVal - viewRect.x) * zoom_pan_area.width/viewRect.width - text_metric_tick.contentWidth*.5
+                    x: (tickVal - viewRect.x) * zoom_pan_area.width/viewRect.width - text_metric_tick.width*.5
                     text: tickVal.toFixed(xticks.precision)
                     font: text_metric_tick.font
                     color: plotarea.textColor
-                    width: text_metric_tick.contentWidth
-                    height: text_metric_tick.contentHeight
+                    width: text_metric_tick.width
+                    height: text_metric_tick.height
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignTop
                 }
+            }
+        }
+
+        Item {
+            // xlabel
+            height: text_metric_tick.height
+            visible: xLabel
+
+            Layout.row: 2
+            Layout.column: 2
+            Layout.fillWidth: true
+
+            Text {
+                anchors.centerIn: parent
+                text: xLabel
+                font: text_metric_tick.font
+                color: plotarea.textColor
             }
         }
     }
