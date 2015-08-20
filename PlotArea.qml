@@ -34,14 +34,12 @@ Rectangle {
 
     QtObject {
         id: xticks
-        property int spacing: plotarea.tickXSpacing
-        property var tickModel: []
-        function new_ticks() {
-            var width = zoom_pan_area.width;
+        property var tickModel: new_ticks(zoom_pan_area.viewRect, zoom_pan_area.width, plotarea.tickXSpacing, text_metric.width)
+        function new_ticks(viewRect, width, spacing, text_width) {
             var x0 = viewRect.x;
             var xrange = viewRect.width;
 
-            var max_ticks = Math.max(Math.floor(width / (text_metric.width + spacing)) + 1, 2);
+            var max_ticks = Math.max(Math.floor(width / (text_width + spacing)) + 1, 2);
             var tickdiffprec = nice_num_prec(xrange / (max_ticks - 1), false);
             var tick_diff = tickdiffprec[0];
             var tick_prec = tickdiffprec[1];
@@ -60,21 +58,16 @@ Rectangle {
             }
             return new_model;
         }
-        Component.onCompleted: {
-
-        }
     }
 
     QtObject {
         id: yticks
-        property real spacing: plotarea.tickYSpacing
-        property var tickModel: []
-        function new_ticks() {
-            var height = zoom_pan_area.height;
+        property var tickModel: new_ticks(zoom_pan_area.viewRect, zoom_pan_area.height, plotarea.tickYSpacing, text_metric.height)
+        function new_ticks(viewRect, height, spacing, text_height) {
             var y0 = viewRect.y;
             var yrange = viewRect.height;
 
-            var max_ticks = Math.max(Math.floor(height / (text_metric.height + spacing)) + 1, 2);
+            var max_ticks = Math.max(Math.floor(height / (text_height + spacing)) + 1, 2);
             var tickdiffprec = nice_num_prec(yrange / (max_ticks - 1), logY);
             var tick_diff = tickdiffprec[0];
             var tick_prec = tickdiffprec[1];
@@ -110,18 +103,6 @@ Rectangle {
             return [Math.ceil(Math.max(1, nicediff)), Math.max(niceprec, 0)]
         else
             return [nicediff, Math.max(niceprec, 0)]
-    }
-
-    function updateTicks() {
-        xticks.tickModel = xticks.new_ticks();
-        yticks.tickModel = yticks.new_ticks();
-    }
-
-    Connections {
-        target: zoom_pan_area
-        onViewRectChanged: updateTicks()
-        onWidthChanged: updateTicks()
-        onHeightChanged: updateTicks()
     }
 
     GridLayout {
@@ -160,10 +141,10 @@ Rectangle {
 
             // ytick labels
             Repeater {
-                model: yticks.tickModel
+                model: yticks.tickModel.length
                 delegate: Text {
-                    y: modelData.pos - .5*height
-                    text: modelData.text
+                    y: yticks.tickModel[index].pos - .5*height
+                    text: yticks.tickModel[index].text
                     font: text_metric.font
                     color: plotarea.textColor
                     width: text_metric.width
@@ -183,12 +164,12 @@ Rectangle {
 
             // xtick grid and markers
             Repeater {
-                model: xticks.tickModel
+                model: xticks.tickModel.length
                 delegate: Item {
                     Rectangle {
                         visible: tickXGrid
                         color: plotarea.gridColor
-                        x: modelData.pos
+                        x: xticks.tickModel[index].pos
                         y: zoom_pan_area.height - height
                         z: -1
                         width: 1
@@ -197,7 +178,7 @@ Rectangle {
                     Rectangle {
                         visible: tickXMarker
                         color: plotarea.textColor
-                        x: modelData.pos
+                        x: xticks.tickModel[index].pos
                         y: zoom_pan_area.height - height
                         z: 1
                         width: 1
@@ -208,13 +189,13 @@ Rectangle {
 
             // ytick grid and markers
             Repeater {
-                model: yticks.tickModel
+                model: yticks.tickModel.length
                 delegate: Item {
                     Rectangle {
                         visible: tickYGrid
                         color: plotarea.gridColor
                         x: 0
-                        y: modelData.pos
+                        y: yticks.tickModel[index].pos
                         z: -1
                         height: 1
                         width: zoom_pan_area.width
@@ -223,7 +204,7 @@ Rectangle {
                         visible: tickYMarker
                         color: plotarea.textColor
                         x: 0
-                        y: modelData.pos
+                        y: yticks.tickModel[index].pos
                         z: 1
                         height: 1
                         width: 10
@@ -257,10 +238,10 @@ Rectangle {
 
             // xtick labels
             Repeater {
-                model: xticks.tickModel
+                model: xticks.tickModel.length
                 delegate: Text {
-                    x: modelData.pos - text_metric.width*.5
-                    text: modelData.text
+                    x: xticks.tickModel[index].pos - text_metric.width*.5
+                    text: xticks.tickModel[index].text
                     font: text_metric.font
                     color: plotarea.textColor
                     width: text_metric.width
