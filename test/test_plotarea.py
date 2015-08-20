@@ -9,8 +9,8 @@ win.show()
 
 # get objects from qml context
 root = win.rootObject()
-items = ["source1", "xyplot1", "xyplot2", "plotarea", "plotwindow"]
-source1, xyplot1, xyplot2, plotarea, plotwindow = (root.findChild(QtCore.QObject, n) for n in items)
+items = ["source1", "xyplot1", "xyplot2", "plotarea"]
+source1, xyplot1, xyplot2, plotarea = (root.findChild(QtCore.QObject, n) for n in items)
 
 n_points = 50
 
@@ -34,12 +34,13 @@ test_func(xydata_buffer1)
 view_rect = autoscale_view(xydata_buffer1)
 
 source1.setData1D(xydata_buffer1.ctypes.data, xydata_buffer1.size)
+plotarea.setProperty("yLabel", "Log10 data")
+plotarea.setProperty("xLabel", "x")
 plotarea.setProperty("viewRect", view_rect)
 xyplot1.setProperty("markerEnabled", True)
 xyplot1.setProperty("markerColor", "#cccc8888")
 xyplot1.setProperty("markerSize", 8)
 xyplot2.setProperty("visible", False)
-plotwindow.setProperty("title", "Log10 Plot")
 
 app.exec_()
 
