@@ -8,6 +8,7 @@ Rectangle {
     DataSource {
         id: source_img
         objectName: "source_img"
+        Component.onCompleted: setTestData2D()
     }
 
     Window {
@@ -31,7 +32,7 @@ Rectangle {
                     id: image
                     objectName: "image"
                     dataSource: source_img
-                    colormap: "bwr"
+                    colormap: "viridis"
                     viewInvert: true
                 }
             ]

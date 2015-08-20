@@ -36,6 +36,7 @@ OTHER_FILES = qmldir \
     test/test_image.qml \
     test/test_xyplot.qml \
     test/test_plotarea.qml \
+    test/test_plotarea2.qml \
     test/Window.qml
 
 qmldir.files = qmldir $$QML_FILES
