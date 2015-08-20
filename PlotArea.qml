@@ -162,11 +162,10 @@ Rectangle {
             Layout.fillHeight: true
             Layout.fillWidth: true
 
-            // xtick grid and markers
+            // xtick grid
             Repeater {
                 model: xticks.tickModel.length
-                delegate: Item {
-                    Rectangle {
+                delegate: Rectangle {
                         visible: tickXGrid
                         color: plotarea.gridColor
                         x: xticks.tickModel[index].pos
@@ -174,50 +173,58 @@ Rectangle {
                         z: -1
                         width: 1
                         height: zoom_pan_area.height
-                    }
-                    Rectangle {
-                        visible: tickXMarker
-                        color: plotarea.textColor
-                        x: xticks.tickModel[index].pos
-                        y: zoom_pan_area.height - height
-                        z: 1
-                        width: 1
-                        height: 10
-                    }
+                }
+            }
+            // xtick marker
+            Repeater {
+                model: xticks.tickModel.length
+                delegate: Rectangle {
+                    visible: tickXMarker
+                    color: plotarea.textColor
+                    x: xticks.tickModel[index].pos
+                    y: zoom_pan_area.height - height
+                    z: 1
+                    width: 1
+                    height: 10
                 }
             }
 
-            // ytick grid and markers
+            // ytick grid
             Repeater {
                 model: yticks.tickModel.length
-                delegate: Item {
-                    Rectangle {
-                        visible: tickYGrid
-                        color: plotarea.gridColor
-                        x: 0
-                        y: yticks.tickModel[index].pos
-                        z: -1
-                        height: 1
-                        width: zoom_pan_area.width
-                    }
-                    Rectangle {
-                        visible: tickYMarker
-                        color: plotarea.textColor
-                        x: 0
-                        y: yticks.tickModel[index].pos
-                        z: 1
-                        height: 1
-                        width: 10
-                    }
+                delegate: Rectangle {
+                    visible: tickYGrid
+                    color: plotarea.gridColor
+                    x: 0
+                    y: yticks.tickModel[index].pos
+                    z: -1
+                    height: 1
+                    width: zoom_pan_area.width
                 }
             }
 
-            // frame
+            // ytick marker
+            Repeater {
+                model: yticks.tickModel.length
+                delegate: Rectangle {
+                    visible: tickYMarker
+                    color: plotarea.textColor
+                    x: 0
+                    y: yticks.tickModel[index].pos
+                    z: 1
+                    height: 1
+                    width: 10
+                }
+            }
+
+            // background
             Rectangle {
                 anchors.fill: parent
                 color: axesBackgroundColor
                 z: -2
             }
+
+            // frame
             Rectangle {
                 anchors.fill: parent
                 color: "transparent"
