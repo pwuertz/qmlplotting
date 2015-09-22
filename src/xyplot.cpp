@@ -2,6 +2,8 @@
 
 #include <QSGGeometryNode>
 #include <QSGFlatColorMaterial>
+#include <QOpenGLContext>
+#include <QOpenGLFunctions>
 #include <QPainter>
 #include <vector>
 #include <cstdint>
@@ -91,8 +93,9 @@ public:
     }
 
     void activate() {
-        glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
-        glEnable(GL_POINT_SPRITE); // TODO: this is deprecated, but appears to be required on NVidia systems
+        QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
+        glFuncs->glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+        glFuncs->glEnable(GL_POINT_SPRITE); // TODO: this is deprecated, but appears to be required on NVidia systems
     }
 
     void updateState(const RenderState &state, QSGMaterial *newMaterial, QSGMaterial *)

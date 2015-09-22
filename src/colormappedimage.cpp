@@ -701,9 +701,9 @@ public:
         // unbind all textures
         QOpenGLFunctions* functions = QOpenGLContext::currentContext()->functions();
         functions->glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_1D, 0);
+        functions->glBindTexture(GL_TEXTURE_1D, 0);
         functions->glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        functions->glBindTexture(GL_TEXTURE_2D, 0);
     }
 
 private:

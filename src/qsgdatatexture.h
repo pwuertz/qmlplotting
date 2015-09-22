@@ -3,10 +3,11 @@
 
 #include <QSGDynamicTexture>
 #include <QByteArray>
+#include <QOpenGLFunctions_2_1>
 
 
 template<typename T>
-class QSGDataTexture : public QSGDynamicTexture
+class QSGDataTexture : public QSGDynamicTexture, protected QOpenGLFunctions_2_1
 {
 public:
     QSGDataTexture();

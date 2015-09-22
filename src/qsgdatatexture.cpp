@@ -4,13 +4,14 @@
 
 template<typename T>
 QSGDataTexture<T>::QSGDataTexture() :
-    QSGDynamicTexture(),
+    QSGDynamicTexture(), QOpenGLFunctions_2_1(),
     m_id_texture(0),
     m_num_dims(0),
     m_num_components(0),
     m_buffer(),
     m_needs_upload(false)
 {
+    initializeOpenGLFunctions();
     m_dims[0] = 0;
     m_dims[1] = 0;
     m_dims[2] = 0;
@@ -54,6 +55,7 @@ bool QSGDataTexture<T>::hasMipmaps() const {
 
 template<typename T>
 void QSGDataTexture<T>::bind() {
+
     if (!m_id_texture) glGenTextures(1, &m_id_texture);
     GLint filter = (filtering() == Linear) ? GL_LINEAR : GL_NEAREST;
 
@@ -99,9 +101,7 @@ void QSGDataTexture<T>::bind() {
             glTexImage2D(GL_TEXTURE_2D, 0, internal_format, m_dims[0], m_dims[1], 0, format, type, m_buffer.data());
             break;
         case 3:
-#ifndef _WIN32 // TODO: glTexImage3D cannot be linked on windows, use qt opengl api
             glTexImage3D(GL_TEXTURE_3D, 0, internal_format, m_dims[0], m_dims[1], m_dims[2], 0, format, type, m_buffer.data());
-#endif
             break;
         default:
             return;
