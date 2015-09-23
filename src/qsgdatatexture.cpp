@@ -1,17 +1,18 @@
 #include "qsgdatatexture.h"
 #include <QOpenGLContext>
 #include <cstdint>
+#include <QtGlobal>
 
 template<typename T>
 QSGDataTexture<T>::QSGDataTexture() :
-    QSGDynamicTexture(), QOpenGLFunctions_2_1(),
+    QSGDynamicTexture(), QOpenGLFunctions_2_0(),
     m_id_texture(0),
     m_num_dims(0),
     m_num_components(0),
     m_buffer(),
     m_needs_upload(false)
 {
-    initializeOpenGLFunctions();
+    if (!initializeOpenGLFunctions()) qFatal("QSGDataTexture: OpenGL 2.0 required");
     m_dims[0] = 0;
     m_dims[1] = 0;
     m_dims[2] = 0;
