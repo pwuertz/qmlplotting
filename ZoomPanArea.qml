@@ -3,8 +3,12 @@ import QtQuick.Controls 1.1
 import qmlplotting 1.0
 
 Item {
+    id: root
     property bool movable: true
     property rect viewRect: Qt.rect(0., 0., 1., 1.)
+
+    signal pressed
+    signal released
 
     // mouse area for zooming/panning the view
     MouseArea {
@@ -25,6 +29,7 @@ Item {
             viewRect = newViewRect;
         }
         onPressed: {
+            root.pressed()
             pressed_p = Qt.point(mouse.x, mouse.y);
             old_p = Qt.point(mouse.x, mouse.y);
             zoom_mode = pressedButtons & Qt.RightButton;
@@ -49,6 +54,7 @@ Item {
             viewRect = newViewRect;
         }
         onReleased: {
+            root.released()
         }
     }
 }
