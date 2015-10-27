@@ -25,6 +25,8 @@ public:
     T* allocateData3D(int width, int height, int depth, int num_components);
     void commitData();
 
+    int getDim(int dim);
+
     virtual bool updateTexture();
 
 private:

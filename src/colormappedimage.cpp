@@ -596,36 +596,6 @@ static double cmap_ferrugineus[] = {
 
 static double cmap_gray[] = {
     0.        , 0.        , 0.        ,
-    0.03225806, 0.03225806, 0.03225806,
-    0.06451613, 0.06451613, 0.06451613,
-    0.09677419, 0.09677419, 0.09677419,
-    0.12903226, 0.12903226, 0.12903226,
-    0.16129032, 0.16129032, 0.16129032,
-    0.19354839, 0.19354839, 0.19354839,
-    0.22580645, 0.22580645, 0.22580645,
-    0.25806452, 0.25806452, 0.25806452,
-    0.29032258, 0.29032258, 0.29032258,
-    0.32258065, 0.32258065, 0.32258065,
-    0.35483871, 0.35483871, 0.35483871,
-    0.38709677, 0.38709677, 0.38709677,
-    0.41935484, 0.41935484, 0.41935484,
-    0.4516129 , 0.4516129 , 0.4516129 ,
-    0.48387097, 0.48387097, 0.48387097,
-    0.51612903, 0.51612903, 0.51612903,
-    0.5483871 , 0.5483871 , 0.5483871 ,
-    0.58064516, 0.58064516, 0.58064516,
-    0.61290323, 0.61290323, 0.61290323,
-    0.64516129, 0.64516129, 0.64516129,
-    0.67741935, 0.67741935, 0.67741935,
-    0.70967742, 0.70967742, 0.70967742,
-    0.74193548, 0.74193548, 0.74193548,
-    0.77419355, 0.77419355, 0.77419355,
-    0.80645161, 0.80645161, 0.80645161,
-    0.83870968, 0.83870968, 0.83870968,
-    0.87096774, 0.87096774, 0.87096774,
-    0.90322581, 0.90322581, 0.90322581,
-    0.93548387, 0.93548387, 0.93548387,
-    0.96774194, 0.96774194, 0.96774194,
     1.        , 1.        , 1.
 };
 
@@ -968,11 +938,6 @@ QSGNode *ColormappedImage::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNo
         m_new_geometry = false;
     }
 
-    // update material parameters
-    material->m_amplitude = 1. / (m_max_value - m_min_value);
-    material->m_offset = -m_min_value;
-    material->m_filter = m_filter;
-
     // check for data source change
     if (m_new_source) {
         material->m_texture_image = m_source->textureProvider()->texture();
@@ -990,6 +955,12 @@ QSGNode *ColormappedImage::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNo
         updateColormapTexture(material->m_texture_cmap, m_colormap);
         m_new_colormap = false;
     }
+
+    // update material parameters
+    double cmap_margin = .5 / material->m_texture_cmap.getDim(0);
+    material->m_amplitude = (1. - 2.*cmap_margin) / (m_max_value - m_min_value);
+    material->m_offset = (cmap_margin / material->m_amplitude) - m_min_value;
+    material->m_filter = m_filter;
 
     n->markDirty(dirty_state);
     n_geom->markDirty(dirty_state);

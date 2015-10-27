@@ -161,6 +161,12 @@ void QSGDataTexture<T>::commitData()
 }
 
 template<typename T>
+int QSGDataTexture<T>::getDim(int dim)
+{
+    return m_dims[dim];
+}
+
+template<typename T>
 bool QSGDataTexture<T>::updateTexture()
 {
     return false;

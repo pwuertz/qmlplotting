@@ -131,14 +131,14 @@ Item {
                 Slider {
                     id: min_slider
                     width: 256
-                    value: -.1
+                    value: 0
                     minimumValue: -.5
                     maximumValue: 1.5
                 }
                 Slider {
                     id: max_slider
                     width: 256
-                    value: 1.1
+                    value: 1
                     minimumValue: -.5
                     maximumValue: 1.5
                 }
