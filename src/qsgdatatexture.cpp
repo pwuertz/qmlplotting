@@ -111,7 +111,7 @@ void QSGDataTexture<T>::bind() {
 }
 
 template<typename T>
-T *QSGDataTexture<T>::allocateData(int *dims, int num_dims, int num_components)
+T *QSGDataTexture<T>::allocateData(const int *dims, int num_dims, int num_components)
 {
     if (num_components < 1 || num_components > 4) return nullptr;
     if (num_dims < 1 || num_dims > 3) return nullptr;

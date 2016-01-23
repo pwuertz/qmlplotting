@@ -19,7 +19,7 @@ public:
     virtual bool hasMipmaps() const;
     virtual void bind();
 
-    T* allocateData(int* dims, int num_dims, int num_components);
+    T* allocateData(const int *dims, int num_dims, int num_components);
     T* allocateData1D(int size, int num_components);
     T* allocateData2D(int width, int height, int num_components);
     T* allocateData3D(int width, int height, int depth, int num_components);

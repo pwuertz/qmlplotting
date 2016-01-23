@@ -23,7 +23,7 @@ public:
     virtual ~DataSource();
 
     virtual bool isTextureProvider() const;
-    virtual QSGTextureProvider* textureProvider();
+    virtual QSGTextureProvider *textureProvider() const;
 
     int dataWidth() const {return m_dims[0];}
     int dataHeight() const {return m_dims[1];}

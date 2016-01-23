@@ -9,7 +9,7 @@
 class DataTexture : public QSGDataTexture<float>
 {
 public:
-    DataTexture(DataSource* source) : QSGDataTexture<float>(), m_source(source) {}
+    DataTexture(const DataSource *source) : QSGDataTexture<float>(), m_source(source) {}
     virtual ~DataTexture() {}
 
     virtual bool updateTexture() {
@@ -30,14 +30,14 @@ public:
     }
 
 private:
-    DataSource* m_source;
+    const DataSource *m_source;
 };
 
 
 class DataTextureProvider : public QSGTextureProvider
 {
 public:
-    DataTextureProvider(DataSource* source) : QSGTextureProvider() {
+    DataTextureProvider(const DataSource *source) : QSGTextureProvider() {
         m_datatexture = new DataTexture(source);
     }
 
@@ -77,14 +77,15 @@ bool DataSource::isTextureProvider() const
     return true;
 }
 
-QSGTextureProvider *DataSource::textureProvider()
+QSGTextureProvider *DataSource::textureProvider() const
 {
     if (!QOpenGLContext::currentContext()) {
         qWarning("DataSource::textureProvider needs OpenGL context");
         return 0;
     }
     if (!m_provider) {
-        m_provider = new DataTextureProvider(this);
+        // TODO: use destroyed signal instead of m_provider for cleanup?
+        ((DataSource*)this)->m_provider = new DataTextureProvider(this);
         m_provider->m_datatexture->updateTexture();
     }
     return m_provider;
