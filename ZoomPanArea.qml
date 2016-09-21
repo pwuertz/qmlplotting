@@ -5,6 +5,7 @@ import qmlplotting 1.0
 Item {
     id: root
     property bool movable: true
+    property bool fixaspect: false
     property rect viewRect: Qt.rect(0., 0., 1., 1.)
 
     signal pressed
@@ -63,8 +64,15 @@ Item {
                 var newViewRect = Qt.rect(viewRect.x, viewRect.y, viewRect.width, viewRect.height);
                 if (zoom_mode) {
                     // zoom mode
-                    var scalex = 1. - 2. * delta.x/root.width;
-                    var scaley = 1. + 2. * delta.y/root.height;
+                    var scalex, scaley;
+                    if (root.fixaspect) {
+                        var d = Math.abs(delta.x) > Math.abs(delta.y) ? -delta.x/root.width : delta.y/root.height;
+                        scalex = 1. + 2. * d;
+                        scaley = 1. + 2. * d;
+                    } else {
+                        scalex = 1. - 2. * delta.x/root.width;
+                        scaley = 1. + 2. * delta.y/root.height;
+                    }
                     newViewRect.x = newViewRect.x + pressed_p.x/root.width * newViewRect.width * (1. - scalex);
                     newViewRect.y = newViewRect.y + (1. - pressed_p.y/root.height) * newViewRect.height * (1. - scaley);
                     newViewRect.width *= scalex;
