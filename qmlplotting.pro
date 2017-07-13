@@ -39,9 +39,14 @@ OTHER_FILES = qmldir \
     test/test_plotarea2.qml \
     test/Window.qml
 
+
+PREFIX = $$(PREFIX)
+isEmpty(PREFIX) {
+    PREFIX = $$[QT_INSTALL_QML]
+}
+
 qmldir.files = qmldir $$QML_FILES
-installPath = $$[QT_INSTALL_QML]/$$replace(uri, \\., /)
+installPath = $$PREFIX/$$replace(uri, \\., /)
 qmldir.path = $$installPath
 target.path = $$installPath
 INSTALLS += target qmldir
-
