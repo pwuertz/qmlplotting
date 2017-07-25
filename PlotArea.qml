@@ -279,19 +279,25 @@ Rectangle {
 
     property list<Item> plotItems
 
-    Component.onCompleted: {
-        this._updatePlotItems();
-        onPlotItemsChanged.connect(this._updatePlotItems);
-    }
+    property Instantiator instantiator: Instantiator{
+        model: plotItems
 
-    function _updatePlotItems() {
-        for (var i = 0; i < plotItems.length; ++i) {
-            plotItems[i].parent = zoom_pan_area;
-            plotItems[i].anchors.fill = zoom_pan_area;
-            plotItems[i].viewRect = Qt.binding(function() {return zoom_pan_area.viewRect})
-            if ("logY" in plotItems[i]) {
-                plotItems[i].logY = Qt.binding(function() {return plotarea.logY})
-            }
+        delegate: QtObject{ // dummy for connection handling
+            Component.onCompleted: connectItem(model)
+            Component.onDestruction: disconnectItem(model)
+        }
+    }
+    function connectItem(item){
+        item.parent = zoom_pan_area
+        item.anchors.fill = zoom_pan_area
+        // item.viewRect = Qt.binding(function() {return zoom_pan_area.viewRect})
+        if("logY" in model){
+            item.logY = Qt.binding(function() {return plotarea.logY})
+        }
+    }
+    function disconnectItem(item){
+        if("logY" in model){
+            item.logY = false
         }
     }
 }
