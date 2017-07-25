@@ -50,3 +50,8 @@ installPath = $$PREFIX/$$replace(uri, \\., /)
 qmldir.path = $$installPath
 target.path = $$installPath
 INSTALLS += target qmldir
+
+develop.target = develop
+develop.commands = $(SYMLINK) $$OUT_PWD $$installPath
+
+QMAKE_EXTRA_TARGETS += develop
