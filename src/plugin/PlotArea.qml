@@ -1,6 +1,6 @@
 import QtQuick 2.4
 import QtQuick.Layouts 1.1
-import qmlplotting 1.0
+import QmlPlotting 1.0
 
 Rectangle {
     id: plotarea

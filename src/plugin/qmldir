@@ -1,0 +1,9 @@
+module QmlPlotting
+plugin qmlplottingplugin
+classname QmlPlottingPlugin
+
+ZoomPanImage 1.0 qrc:///QmlPlotting/ZoomPanImage.qml
+ZoomPanArea 1.0 qrc:///QmlPlotting/ZoomPanArea.qml
+SelectionBox 1.0 qrc:///QmlPlotting/SelectionBox.qml
+SelectionBoxImg 1.0 qrc:///QmlPlotting/SelectionBoxImg.qml
+PlotArea 1.0 qrc:///QmlPlotting/PlotArea.qml

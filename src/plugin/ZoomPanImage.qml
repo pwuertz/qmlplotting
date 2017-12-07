@@ -1,7 +1,7 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.1
 import QtQml 2.2
-import qmlplotting 1.0
+import QmlPlotting 1.0
 
 ColormappedImage {
     id: image

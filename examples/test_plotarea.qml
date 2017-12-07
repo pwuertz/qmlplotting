@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import qmlplotting 1.0
+import QmlPlotting 1.0
 
 Rectangle {
     width: 900; height: 500
