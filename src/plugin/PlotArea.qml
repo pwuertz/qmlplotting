@@ -290,7 +290,7 @@ Rectangle {
     function connectItem(item){
         item.parent = zoom_pan_area
         item.anchors.fill = zoom_pan_area
-        // item.viewRect = Qt.binding(function() {return zoom_pan_area.viewRect})
+        item.viewRect = Qt.binding(function() {return zoom_pan_area.viewRect})
         if("logY" in model){
             item.logY = Qt.binding(function() {return plotarea.logY})
         }
