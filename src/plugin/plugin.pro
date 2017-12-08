@@ -1,23 +1,30 @@
+# QML Plugin Extention
 TARGET = qmlplottingplugin
-TARGETPATH = QmlPlotting
-IMPORT_VERSION = 1.0
 QT += qml quick
-
-DEFINES += QTQMLPLOTTING_LIBRARY
-
+CONFIG += exceptions c++14
 include($$PWD/../qmlplotting/qmlplotting.pri)
 SOURCES += $$PWD/plugin.cpp
 
-qmlplotting.files = \
+# QML Resources
+QML_FILES = \
     $$PWD/ZoomPanImage.qml \
     $$PWD/ZoomPanArea.qml \
     $$PWD/SelectionBox.qml \
     $$PWD/SelectionBoxImg.qml \
     $$PWD/PlotArea.qml
-qmlplotting.prefix = /QmlPlotting
-RESOURCES += qmlplotting
 
+# QML Module
+TARGETPATH = QmlPlotting
+IMPORT_VERSION = 1.0
 CONFIG += no_cxx_module
 load(qml_plugin)
 
-CONFIG += exceptions c++14
+# Copy QML_FILES to build (how to handle non-shadow builds?)
+for(FILE, QML_FILES) copy_qmlfiles.commands += $(COPY) $$FILE $$DESTDIR ;
+QMAKE_EXTRA_TARGETS += copy_qmlfiles
+POST_TARGETDEPS += copy_qmlfiles
+
+# Optional target: Symlink for development
+develop.target = develop
+develop.commands = $(SYMLINK) $$OUT_PWD/../../qml/QmlPlotting $$[QT_INSTALL_QML]
+QMAKE_EXTRA_TARGETS += develop

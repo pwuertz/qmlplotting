@@ -5,3 +5,5 @@ SUBDIRS = \
 
 tests.depends = src
 
+OTHER_FILES = \
+    .qmake.conf

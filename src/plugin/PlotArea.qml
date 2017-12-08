@@ -1,3 +1,4 @@
+import QtQml 2.2
 import QtQuick 2.4
 import QtQuick.Layouts 1.1
 import QmlPlotting 1.0
@@ -279,24 +280,24 @@ Rectangle {
 
     property list<Item> plotItems
 
-    property Instantiator instantiator: Instantiator{
+    property Instantiator instantiator: Instantiator {
         model: plotItems
 
         delegate: QtObject{ // dummy for connection handling
-            Component.onCompleted: connectItem(model)
-            Component.onDestruction: disconnectItem(model)
+            Component.onCompleted: connectItem(modelData)
+            Component.onDestruction: disconnectItem(modelData)
         }
     }
     function connectItem(item){
         item.parent = zoom_pan_area
         item.anchors.fill = zoom_pan_area
         item.viewRect = Qt.binding(function() {return zoom_pan_area.viewRect})
-        if("logY" in model){
+        if("logY" in item){
             item.logY = Qt.binding(function() {return plotarea.logY})
         }
     }
     function disconnectItem(item){
-        if("logY" in model){
+        if("logY" in item){
             item.logY = false
         }
     }
