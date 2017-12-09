@@ -91,6 +91,28 @@ QSGTextureProvider *DataSource::textureProvider() const
     return m_provider;
 }
 
+bool DataSource::copyFloat64Array1D(QByteArray data, int size)
+{
+    if (size * sizeof(double) > (unsigned) data.size())
+        return false;
+    auto p_src = reinterpret_cast<const double*>(data.constData());
+    auto p_dst = static_cast<double*>(allocateData1D(size));
+    for (decltype(size) i = 0; i < size; ++i)
+        p_dst[i] = p_src[i];
+    return commitData();
+}
+
+bool DataSource::copyFloat64Array2D(QByteArray data, int width, int height)
+{
+    if (width * height * sizeof(double) > (unsigned) data.size())
+        return false;
+    auto p_src = reinterpret_cast<const double*>(data.constData());
+    auto p_dst = static_cast<double*>(allocateData2D(width, height));
+    for (int i = 0; i < width * height; ++i)
+        p_dst[i] = p_src[i];
+    return commitData();
+}
+
 bool DataSource::setData(double *data, const int *dims, int num_dims)
 {
     if (num_dims <= 0 || num_dims > 3) {

@@ -30,6 +30,8 @@ public:
     int dataDepth() const {return m_dims[2];}
 
 public slots:
+    bool copyFloat64Array1D(QByteArray data, int size);
+    bool copyFloat64Array2D(QByteArray data, int width, int height);
     bool setTestData1D();
     bool setTestData2D();
     bool setData1D(void* data, int size);
