@@ -20,11 +20,13 @@ CONFIG += no_cxx_module
 load(qml_plugin)
 
 # Copy QML_FILES to build (how to handle non-shadow builds?)
-for(FILE, QML_FILES) copy_qmlfiles.commands += $(COPY) $$FILE $$DESTDIR ;
-QMAKE_EXTRA_TARGETS += copy_qmlfiles
-POST_TARGETDEPS += copy_qmlfiles
+for(FILE, QML_FILES) copy_qmlfiles.commands += $(COPY) $$system_quote($$system_path($$FILE)) $$system_quote($$system_path($$DESTDIR)) $$escape_expand(\n\t)
+first.depends = $(first) copy_qmlfiles
+export(first.depends)
+export(copy_qmlfiles.commands)
+QMAKE_EXTRA_TARGETS += first copy_qmlfiles
 
 # Optional target: Symlink for development
 develop.target = develop
-develop.commands = $(SYMLINK) $$OUT_PWD/../../qml/QmlPlotting $$[QT_INSTALL_QML]
+develop.commands = $(SYMLINK) $$system_quote($$system_path($$OUT_PWD/../../qml/QmlPlotting)) $$[QT_INSTALL_QML]
 QMAKE_EXTRA_TARGETS += develop
