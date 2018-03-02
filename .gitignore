@@ -3,4 +3,4 @@ moc_*.cpp
 Makefile
 *.qmlc
 *.so
-*.pro.user*
+*.user

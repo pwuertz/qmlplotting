@@ -3,25 +3,39 @@
 #include <cstdint>
 #include <QtGlobal>
 
+template <typename T>
+struct GlMap {
+    static constexpr GLint internalFormat(int nColors) {
+        return internalFormats[nColors];
+    }
+    static constexpr GLenum dataFormat(int nColors) {
+        constexpr GLenum dataFormats[5] = {0, GL_RED, GL_RG, GL_RGB, GL_BGRA};
+        return dataFormats[nColors];
+    }
+    static const GLint internalFormats[5];
+    static const GLenum dataType;
+};
+
+template<> const GLint GlMap<float>::internalFormats[5] = {0, GL_R32F, GL_RG32F, GL_RGB32F, GL_RGBA32F};
+template<> const GLenum GlMap<float>::dataType = GL_FLOAT;
+
+template<> const GLint GlMap<uint8_t>::internalFormats[5] = {0, GL_R8, GL_RG8, GL_RGB8, GL_RGBA8};
+template<> const GLenum GlMap<uint8_t>::dataType = GL_UNSIGNED_BYTE;
+
+
 template<typename T>
 QSGDataTexture<T>::QSGDataTexture() :
-    QSGDynamicTexture(), QOpenGLFunctions_2_0(),
-    m_id_texture(0),
-    m_num_dims(0),
-    m_num_components(0),
-    m_buffer(),
-    m_needs_upload(false)
+    QSGDynamicTexture(), QOpenGLFunctions_2_0()
 {
-    if (!initializeOpenGLFunctions()) qFatal("QSGDataTexture: OpenGL 2.0 required");
-    m_dims[0] = 0;
-    m_dims[1] = 0;
-    m_dims[2] = 0;
+    if (!initializeOpenGLFunctions()) {
+        qFatal("QSGDataTexture: OpenGL 2.0 required");
+    }
 }
 
 template<typename T>
 QSGDataTexture<T>::~QSGDataTexture() {
     if (m_id_texture) {
-        if (!QOpenGLContext::currentContext()) {
+        if (QOpenGLContext::currentContext() == nullptr) {
             qWarning("QSGDataTexture destroyed without OpenGL context");
         }
         glDeleteTextures(1, &m_id_texture);
@@ -30,18 +44,18 @@ QSGDataTexture<T>::~QSGDataTexture() {
 
 template<typename T>
 int QSGDataTexture<T>::textureId() const {
-    return m_id_texture;
+    return static_cast<int>(m_id_texture);
 }
 
 template<typename T>
 QSize QSGDataTexture<T>::textureSize() const {
     if (m_num_dims == 2) {
-        return QSize(m_dims[0], m_dims[1]);
-    } else if (m_num_dims == 1) {
-        return QSize(m_dims[0], 0);
-    } else {
-        return QSize();
+        return {m_dims[0], m_dims[1]};
     }
+    if (m_num_dims == 1) {
+        return {m_dims[0], 0};
+    }
+    return QSize();
 }
 
 template<typename T>
@@ -57,7 +71,9 @@ bool QSGDataTexture<T>::hasMipmaps() const {
 template<typename T>
 void QSGDataTexture<T>::bind() {
 
-    if (!m_id_texture) glGenTextures(1, &m_id_texture);
+    if (m_id_texture == 0u) {
+        glGenTextures(1, &m_id_texture);
+    }
     GLint filter = (filtering() == Linear) ? GL_LINEAR : GL_NEAREST;
 
     switch (m_num_dims) {
@@ -89,9 +105,9 @@ void QSGDataTexture<T>::bind() {
     if (m_needs_upload) {
         m_needs_upload = false;
         // determine color format
-        const GLint internal_format = glformat_internal[m_num_components];
-        const GLenum format = glformat[m_num_components];
-        const GLenum type = gltype;
+        const GLint internal_format = GlMap<T>::internalFormat(m_num_components);
+        const GLenum format = GlMap<T>::dataFormat(m_num_components);
+        const GLenum type = GlMap<T>::dataType;
 
         // upload data as 1D or 2D texture
         switch (m_num_dims) {
@@ -113,8 +129,12 @@ void QSGDataTexture<T>::bind() {
 template<typename T>
 T *QSGDataTexture<T>::allocateData(const int *dims, int num_dims, int num_components)
 {
-    if (num_components < 1 || num_components > 4) return nullptr;
-    if (num_dims < 1 || num_dims > 3) return nullptr;
+    if (num_components < 1 || num_components > 4) {
+        return nullptr;
+    }
+    if (num_dims < 1 || num_dims > 3) {
+        return nullptr;
+    }
 
     // calculate total number of elements
     int num_elements = num_components;
@@ -124,34 +144,34 @@ T *QSGDataTexture<T>::allocateData(const int *dims, int num_dims, int num_compon
     }
 
     // calculate total number of bytes, resize buffer if required
-    int num_bytes = num_elements * sizeof(T);
+    int num_bytes = num_elements * static_cast<int>(sizeof(T));
     if (m_buffer.size() != num_bytes) {
         m_buffer.resize(num_bytes);
     }
 
     m_num_dims = num_dims;
     m_num_components = num_components;
-    return (T*) m_buffer.data();
+    return reinterpret_cast<T*>(m_buffer.data());
 }
 
 template<typename T>
 T* QSGDataTexture<T>::allocateData1D(int size, int num_components)
 {
-    return (T*) allocateData(&size, 1, num_components);
+    return reinterpret_cast<T*>(allocateData(&size, 1, num_components));
 }
 
 template<typename T>
 T* QSGDataTexture<T>::allocateData2D(int width, int height, int num_components)
 {
     int dims[] = {width, height};
-    return (T*) allocateData(dims, 2, num_components);
+    return reinterpret_cast<T*>(allocateData(dims, 2, num_components));
 }
 
 template<typename T>
 T* QSGDataTexture<T>::allocateData3D(int width, int height, int depth, int num_components)
 {
     int dims[] = {width, height, depth};
-    return (T*) allocateData(dims, 3, num_components);
+    return reinterpret_cast<T*>(allocateData(dims, 3, num_components));
 }
 
 template<typename T>
@@ -173,15 +193,6 @@ bool QSGDataTexture<T>::updateTexture()
 }
 
 
-
-// explicit instantiation of QSGDataTexture<float>
-template<> const int QSGDataTexture<float>::glformat_internal[5] = {0, GL_R32F, GL_RG32F, GL_RGB32F, GL_RGBA32F};
-template<> const int QSGDataTexture<float>::glformat[5] = {0, GL_RED, GL_RG, GL_RGB, GL_RGBA};
-template<> const int QSGDataTexture<float>::gltype = GL_FLOAT;
-template class QSGDataTexture<float>;
-
-// explicit instantiation of QSGDataTexture<uint8_t>
-template<> const int QSGDataTexture<uint8_t>::glformat_internal[5] = {0, GL_R8, GL_RG8, GL_RGB8, GL_RGBA8};
-template<> const int QSGDataTexture<uint8_t>::glformat[5] = {0, GL_RED, GL_RG, GL_RGB, GL_BGRA};
-template<> const int QSGDataTexture<uint8_t>::gltype = GL_UNSIGNED_BYTE;
+// Explicitly instantiate data texture classes in this unit
 template class QSGDataTexture<uint8_t>;
+template class QSGDataTexture<float>;

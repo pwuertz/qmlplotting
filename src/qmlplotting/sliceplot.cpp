@@ -24,10 +24,16 @@ public:
 class SliceLinePlotMaterial : public SlicePlotMaterial
 {
 public:
-    SliceLinePlotMaterial() : SlicePlotMaterial(false) {}
-    virtual ~SliceLinePlotMaterial() {}
-    QSGMaterialType *type() const { static QSGMaterialType type; return &type; }
-    QSGMaterialShader *createShader() const;
+    SliceLinePlotMaterial() : SlicePlotMaterial(false)
+    {
+    }
+    ~SliceLinePlotMaterial() override = default;
+
+    QSGMaterialType *type() const override {
+        static QSGMaterialType type;
+        return &type;
+    }
+    QSGMaterialShader *createShader() const override;
 };
 
 class SliceFillPlotMaterial : public SlicePlotMaterial
@@ -36,25 +42,27 @@ public:
     SliceFillPlotMaterial() : SlicePlotMaterial(true) {
         setFlag(QSGMaterial::Blending);
     }
-    virtual ~SliceFillPlotMaterial() {}
-    QSGMaterialType *type() const { static QSGMaterialType type; return &type; }
-    QSGMaterialShader *createShader() const;
+    ~SliceFillPlotMaterial() override = default;
+
+    QSGMaterialType *type() const override {
+        static QSGMaterialType type;
+        return &type;
+    }
+    QSGMaterialShader *createShader() const override;
 };
 
 class SlicePlotShader : public QSGMaterialShader
 {
 public:
-    SlicePlotShader() : QSGMaterialShader() {}
-    virtual ~SlicePlotShader() {}
+    SlicePlotShader() = default;
+    ~SlicePlotShader() override = default;
 
-    char const *const *attributeNames() const
-    {
-        static char const *const names[] = { "vertex", 0 };
+    char const *const *attributeNames() const override {
+        static char const *const names[] = { "vertex", nullptr };
         return names;
     }
 
-    void initialize()
-    {
+    void initialize() override {
         QSGMaterialShader::initialize();
         m_id_matrix = program()->uniformLocation("matrix");
         m_id_opacity = program()->uniformLocation("opacity");
@@ -68,18 +76,19 @@ public:
         m_id_p2 = program()->uniformLocation("p2");
     }
 
-    void activate() {
+    void activate() override {
     }
 
-    void updateState(const RenderState &state, QSGMaterial *newMaterial, QSGMaterial *)
-    {
+    void updateState(const RenderState& state, QSGMaterial *newMaterial, QSGMaterial *) override {
         Q_ASSERT(program()->isLinked());
-        SliceLinePlotMaterial* material = static_cast<SliceLinePlotMaterial*>(newMaterial);
+        auto* material = static_cast<SliceLinePlotMaterial*>(newMaterial);
 
-        if (state.isMatrixDirty())
+        if (state.isMatrixDirty()) {
             program()->setUniformValue(m_id_matrix, state.combinedMatrix());
-        if (state.isOpacityDirty())
+        }
+        if (state.isOpacityDirty()) {
             program()->setUniformValue(m_id_opacity, state.opacity());
+        }
 
         // bind material parameters
         program()->setUniformValue(m_id_width, float(material->m_width));
@@ -95,7 +104,7 @@ public:
         material->m_texture_data->bind();
     }
 
-    void deactivate() {
+    void deactivate() override {
     }
 
 protected:
@@ -114,10 +123,10 @@ protected:
 class SliceLinePlotShader : public SlicePlotShader
 {
 public:
-    SliceLinePlotShader() : SlicePlotShader() {}
-    virtual ~SliceLinePlotShader() {}
+    SliceLinePlotShader() = default;
+    ~SliceLinePlotShader() override = default;
 
-    const char *vertexShader() const {
+    const char *vertexShader() const override {
         return GLSL(130,
             in highp vec2 vertex;
             uniform sampler2D data;
@@ -138,7 +147,7 @@ public:
         );
     }
 
-    const char *fragmentShader() const {
+    const char *fragmentShader() const override {
         return GLSL(130,
             uniform sampler2D data;
             uniform lowp float opacity;
@@ -157,10 +166,10 @@ public:
 class SliceFillPlotShader : public SlicePlotShader
 {
 public:
-    SliceFillPlotShader() : SlicePlotShader() {}
-    virtual ~SliceFillPlotShader() {}
+    SliceFillPlotShader() = default;
+    ~SliceFillPlotShader() override = default;
 
-    const char *vertexShader() const {
+    const char *vertexShader() const override {
         return GLSL(130,
             in highp vec2 vertex;
             uniform sampler2D data;
@@ -180,7 +189,7 @@ public:
         );
     }
 
-    const char *fragmentShader() const {
+    const char *fragmentShader() const override {
         return GLSL(130,
             uniform sampler2D data;
             uniform lowp float opacity;
@@ -222,14 +231,13 @@ SlicePlot::SlicePlot(QQuickItem *parent) :
     setClip(true);
 }
 
-SlicePlot::~SlicePlot()
-{
-
-}
+SlicePlot::~SlicePlot() = default;
 
 void SlicePlot::setMinimumValue(double value)
 {
-    if (value == m_min_value) return;
+    if (value == m_min_value) {
+        return;
+    }
     m_min_value = value;
     emit minimumValueChanged(value);
     update();
@@ -237,7 +245,9 @@ void SlicePlot::setMinimumValue(double value)
 
 void SlicePlot::setMaximumValue(double value)
 {
-    if (value == m_max_value) return;
+    if (value == m_max_value) {
+        return;
+    }
     m_max_value = value;
     emit maximumValueChanged(value);
     update();
@@ -245,7 +255,9 @@ void SlicePlot::setMaximumValue(double value)
 
 void SlicePlot::setNumSegments(int n)
 {
-    if (n == m_num_segments) return;
+    if (n == m_num_segments) {
+        return;
+    }
     m_num_segments = n;
     m_new_geometry = true;
     emit numSegmentsChanged(n);
@@ -254,7 +266,9 @@ void SlicePlot::setNumSegments(int n)
 
 void SlicePlot::setP1(const QPointF &p)
 {
-    if (m_p1 == p) return;
+    if (m_p1 == p) {
+        return;
+    }
     m_p1 = p;
     emit p1Changed(m_p1);
     update();
@@ -262,7 +276,9 @@ void SlicePlot::setP1(const QPointF &p)
 
 void SlicePlot::setP2(const QPointF &p)
 {
-    if (m_p2 == p) return;
+    if (m_p2 == p) {
+        return;
+    }
     m_p2 = p;
     emit p2Changed(m_p2);
     update();
@@ -270,7 +286,9 @@ void SlicePlot::setP2(const QPointF &p)
 
 void SlicePlot::setColor(const QColor &color)
 {
-    if (m_color == color) return;
+    if (m_color == color) {
+        return;
+    }
     m_color = color;
     emit colorChanged(m_color);
     update();
@@ -278,7 +296,9 @@ void SlicePlot::setColor(const QColor &color)
 
 void SlicePlot::setFilled(bool filled)
 {
-    if (m_filled == filled) return;
+    if (m_filled == filled) {
+        return;
+    }
     m_filled = filled;
     emit filledChanged(m_filled);
     update();
@@ -290,13 +310,13 @@ QSGNode *SlicePlot::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNodeData 
     QSGGeometry *geometry;
     SlicePlotMaterial *material;
 
-    if (!n) {
+    if (n == nullptr) {
         n = new QSGNode;
     }
 
-    if (!m_source) {
+    if (m_source == nullptr) {
         // remove child node if there is no data source
-        if (n->firstChild()) {
+        if (n->firstChild() != nullptr) {
             n_geom = static_cast<QSGGeometryNode*>(n->firstChild());
             n->removeAllChildNodes();
             delete n_geom;
@@ -305,7 +325,7 @@ QSGNode *SlicePlot::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNodeData 
         return n;
     }
 
-    if (!n->firstChild()) {
+    if (n->firstChild() == nullptr) {
         // create child node if there is a data source
         n_geom = new QSGGeometryNode();
         n_geom->setFlag(QSGNode::OwnedByParent);
@@ -380,10 +400,10 @@ QSGNode *SlicePlot::updatePaintNode(QSGNode *n, QQuickItem::UpdatePaintNodeData 
     } else {
         if (geometry->vertexCount() != (m_num_segments+1)) {
             geometry->allocate(m_num_segments+1);
-            float* data = static_cast<float*>(geometry->vertexData());
+            auto* data = static_cast<float*>(geometry->vertexData());
             for (int i = 0; i <= m_num_segments; ++i) {
                 double f = i * (1./m_num_segments);
-                data[2*i] = f;
+                data[2*i] = static_cast<float>(f);
             }
             dirty_state |= QSGNode::DirtyGeometry;
         }

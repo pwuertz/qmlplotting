@@ -1,0 +1,10 @@
+module QmlPlotting
+plugin qmlplottingplugin
+classname QmlPlottingPlugin
+
+Utils 2.0 Utils.js
+Scale 2.0 Scale.qml
+Axes 2.0 Axes.qml
+Container 2.0 Container.qml
+MovableContainer 2.0 MovableContainer.qml
+ZoomPanTool 2.0 ZoomPanTool.qml

@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/">
+        <file>demo.qml</file>
+        <file>qtquickcontrols2.conf</file>
+    </qresource>
+    <qresource prefix="/pages">
+        <file>ColormappedImage.qml</file>
+        <file>XYPlot.qml</file>
+        <file>Containers.qml</file>
+    </qresource>
+</RCC>

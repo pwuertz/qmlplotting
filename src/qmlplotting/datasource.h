@@ -19,19 +19,19 @@ class DataSource : public QQuickItem
     Q_PROPERTY(int dataDepth READ dataDepth  NOTIFY dataSizeChanged)
 
 public:
-    explicit DataSource(QQuickItem *parent = 0);
-    virtual ~DataSource();
+    explicit DataSource(QQuickItem *parent = nullptr);
+    ~DataSource() override;
 
-    virtual bool isTextureProvider() const;
-    virtual QSGTextureProvider *textureProvider() const;
+    bool isTextureProvider() const override;
+    QSGTextureProvider *textureProvider() const override;
 
     int dataWidth() const {return m_dims[0];}
     int dataHeight() const {return m_dims[1];}
     int dataDepth() const {return m_dims[2];}
 
 public slots:
-    bool copyFloat64Array1D(QByteArray data, int size);
-    bool copyFloat64Array2D(QByteArray data, int width, int height);
+    bool copyFloat64Array1D(const QByteArray& data, int size);
+    bool copyFloat64Array2D(const QByteArray& data, int width, int height);
     bool setTestData1D();
     bool setTestData2D();
     bool setData1D(void* data, int size);

@@ -11,13 +11,13 @@ class QSGDataTexture : public QSGDynamicTexture, protected QOpenGLFunctions_2_0
 {
 public:
     QSGDataTexture();
-    virtual ~QSGDataTexture();
+    ~QSGDataTexture() override;
 
-    virtual int textureId() const;
-    virtual QSize textureSize() const;
-    virtual bool hasAlphaChannel() const;
-    virtual bool hasMipmaps() const;
-    virtual void bind();
+    int textureId() const override;
+    QSize textureSize() const override;
+    bool hasAlphaChannel() const override;
+    bool hasMipmaps() const override;
+    void bind() override;
 
     T* allocateData(const int *dims, int num_dims, int num_components);
     T* allocateData1D(int size, int num_components);
@@ -27,19 +27,18 @@ public:
 
     int getDim(int dim);
 
-    virtual bool updateTexture();
+    bool updateTexture() override;
 
 private:
-    unsigned int m_id_texture;
-    int m_num_dims;
-    int m_dims[3];
-    int m_num_components;
+    unsigned int m_id_texture = 0;
+    int m_num_dims = 0;
+    int m_dims[3] = {0, 0, 0};
+    int m_num_components = 0;
     QByteArray m_buffer;
-    bool m_needs_upload;
-
-    static const int glformat_internal[5];
-    static const int glformat[5];
-    static const int gltype;
+    bool m_needs_upload = false;
 };
+
+extern template class QSGDataTexture<float>;
+extern template class QSGDataTexture<uint8_t>;
 
 #endif // QSGDATATEXTURE_H

@@ -13,14 +13,14 @@ signals:
     void dataSourceChanged(QQuickItem* item);
 
 public:
-    explicit DataClient(QQuickItem *parent = 0);
-    virtual ~DataClient();
+    explicit DataClient(QQuickItem *parent = nullptr);
+    ~DataClient() override;
 
     QQuickItem* dataSource() const {return m_source;}
     virtual void setDataSource(QQuickItem* item);
 
 protected:
-    void geometryChanged(const QRectF & newGeometry, const QRectF & oldGeometry);
+    void geometryChanged(const QRectF& newGeometry, const QRectF& oldGeometry) override;
     Q_INVOKABLE void dataChanged();
 
     bool m_new_geometry;

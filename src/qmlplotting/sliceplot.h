@@ -16,8 +16,8 @@ class SlicePlot : public DataClient
     Q_PROPERTY(bool filled MEMBER m_filled WRITE setFilled NOTIFY filledChanged)
 
 public:
-    explicit SlicePlot(QQuickItem *parent = 0);
-    virtual ~SlicePlot();
+    explicit SlicePlot(QQuickItem *parent = nullptr);
+    ~SlicePlot() override;
 
     double minimumValue() const {return m_min_value;}
     double maximumValue() const {return m_max_value;}
@@ -44,7 +44,7 @@ signals:
     void filledChanged(bool);
 
 protected:
-    virtual QSGNode* updatePaintNode(QSGNode *, UpdatePaintNodeData *);
+    QSGNode* updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* updatePaintNodeData) override;
 
 private:
     double m_min_value;

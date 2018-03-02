@@ -1,17 +1,16 @@
 #include "dataclient.h"
 
-DataClient::DataClient(QQuickItem *parent) :
-    QQuickItem(parent),
-    m_new_geometry(false), m_new_data(false), m_new_source(false),
-    m_source(nullptr)
+DataClient::DataClient(QQuickItem *parent)
+    : QQuickItem(parent)
+    , m_new_geometry(false)
+    , m_new_data(false)
+    , m_new_source(false)
+    , m_source(nullptr)
 {
 
 }
 
-DataClient::~DataClient()
-{
-
-}
+DataClient::~DataClient() = default;
 
 void DataClient::dataChanged()
 {
@@ -21,16 +20,18 @@ void DataClient::dataChanged()
 
 void DataClient::setDataSource(QQuickItem *item)
 {
-    DataSource* d = dynamic_cast<DataSource*>(item);
-    if (d == m_source) return;
+    auto* d = dynamic_cast<DataSource*>(item);
+    if (d == m_source) {
+        return;
+    }
 
     // disconnect from previous data source
-    if (m_source) {
-        disconnect(m_source, SIGNAL(dataChanged()), this, SLOT(dataChanged()));
+    if (m_source != nullptr) {
+        disconnect(m_source, &DataSource::dataChanged, this, &DataClient::dataChanged);
     }
     // connect to new data source
-    if (d) {
-        connect(d, SIGNAL(dataChanged()), this, SLOT(dataChanged()));
+    if (d != nullptr) {
+        connect(d, &DataSource::dataChanged, this, &DataClient::dataChanged);
     }
     m_source = d;
     m_new_source = true;

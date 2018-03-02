@@ -20,8 +20,8 @@ class XYPlot : public DataClient
     Q_PROPERTY(bool logY MEMBER m_logy WRITE setLogY NOTIFY logYChanged)
 
 public:
-    explicit XYPlot(QQuickItem *parent = 0);
-    virtual ~XYPlot() {}
+    explicit XYPlot(QQuickItem *parent = nullptr);
+    ~XYPlot() override = default;
 
     void setViewRect(const QRectF& viewrect);
     void setFillEnabled(bool enabled);
@@ -51,21 +51,21 @@ signals:
     void logYChanged(bool);
 
 protected:
-    virtual QSGNode* updatePaintNode(QSGNode *, UpdatePaintNodeData *);
+    QSGNode* updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* updatePaintNodeData) override;
 
 private:
-    QRectF m_view_rect;
-    bool m_fill;
-    QColor m_fillcolor;
-    bool m_line;
-    double m_linewidth;
-    QColor m_linecolor;
-    bool m_marker;
-    double m_markersegments;
-    double m_markersize;
-    QColor m_markercolor;
-    bool m_markerborder;
-    bool m_logy;
+    QRectF m_view_rect = {0, 0, 1, 1};
+    bool m_fill = false;
+    QColor m_fillcolor = {0, 0, 0};
+    bool m_line = true;
+    double m_linewidth = 1.;
+    QColor m_linecolor = {0, 0, 0};
+    bool m_marker = true;
+    double m_markersegments = 0;
+    double m_markersize = 5.;
+    QColor m_markercolor = {0, 0, 0};
+    bool m_markerborder = false;
+    bool m_logy = false;
 };
 
 #endif // XYPLOT_H
