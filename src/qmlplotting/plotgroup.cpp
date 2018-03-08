@@ -39,7 +39,7 @@ void PlotGroup::setAspectAuto(bool aspectAuto)
     if (m_aspectAuto != aspectAuto) {
         m_aspectAuto = aspectAuto;
         if (!m_aspectAuto) {
-            setViewRect(correctAspectRatio(m_viewRect));
+            setViewRect(m_viewRect);
         }
         emit aspectAutoChanged(aspectAuto);
     }
@@ -50,21 +50,23 @@ void PlotGroup::setAspectRatio(double aspectRatio)
     if (m_aspectRatio != aspectRatio) {
         m_aspectRatio = std::max(aspectRatio, 0.);
         if (!m_aspectAuto) {
-            setViewRect(correctAspectRatio(m_viewRect));
+            setViewRect(m_viewRect);
         }
         emit aspectRatioChanged(aspectRatio);
     }
 }
 
-void PlotGroup::setViewRect(const QRectF &viewRect)
+void PlotGroup::setViewRect(const QRectF& viewRect)
 {
-    if (m_viewRect != viewRect) {
-        m_viewRect = viewRect;  // TODO: Enforce correct aspect ratio here?
+    // Enforce view correction if aspect is fixed (TODO: just check aspect before full calculation?)
+    const QRectF newViewRect = m_aspectAuto ? viewRect : correctAspectRatio(viewRect);
+    if (m_viewRect != newViewRect) {
+        m_viewRect = newViewRect;
         // Forward viewRect change to plot items
         for (auto& item: m_plotItems) {
-            item->setProperty("viewRect", viewRect);
+            item->setProperty("viewRect", newViewRect);
         }
-        emit viewRectChanged(viewRect);
+        emit viewRectChanged(newViewRect);
     }
 }
 
@@ -89,7 +91,7 @@ void PlotGroup::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeom
     }
     // If aspect ratio is fixed, correct viewRect after resize
     if (!m_aspectAuto) {
-        setViewRect(correctAspectRatio(m_viewRect));
+        setViewRect(m_viewRect);
     }
 }
 
@@ -99,7 +101,7 @@ QRectF PlotGroup::correctAspectRatio(const QRectF &viewRect)
     if (!(width() > 0 && height() > 0)) {
         return viewRect;
     }
-    // TODO: What is the 'natural' way of applying view rect constraints?
+    // TODO: Use an enum like Image.fillMode to define view behaviour
     // For now fix y-axis and adjust width according to target aspect ratio.
     const double viewAspect = m_aspectRatio * width() / height();
     const double targetWidth = viewRect.height() * viewAspect;
