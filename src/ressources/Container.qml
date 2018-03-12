@@ -5,28 +5,23 @@ Item {
     property rect viewRect
     property rect itemRect: Qt.rect(0, 0, 1, 1)
 
-    onWidthChanged: updateChildItems()
-    onHeightChanged: updateChildItems()
-    onViewRectChanged: updateChildItems()
-    onItemRectChanged: updateChildItems()
-    Component.onCompleted: updateChildItems()
-    onChildrenChanged: updateChildItems()
+    default property alias contentItems: contentItem.children
 
-    function updateChildItems() {
-        // Calculate child item coordinates
-        var xToScene = width / viewRect.width;
-        var yToScene = height / viewRect.height;
-        var childHeight = itemRect.height * yToScene;
-        var childWidth = itemRect.width * xToScene;
-        var childX = (itemRect.x - viewRect.x) * xToScene;
-        var childY = height - childHeight - (itemRect.y - viewRect.y) * yToScene;
-        // Apply to children
-        for (var i=0; i < children.length; ++i) {
-            var child = children[i];
-            child.x = childX;
-            child.y = childY;
-            child.width = childWidth;
-            child.height = childHeight;
-        }
+    Item {
+        id: contentItem
+        readonly property real _xFactor: root.width / root.viewRect.width
+        readonly property real _yFactor: root.height / root.viewRect.height
+        width: root.itemRect.width * _xFactor
+        height: root.itemRect.height * _yFactor
+        x: (itemRect.x - viewRect.x) * _xFactor
+        y: root.height - height - (root.itemRect.y - root.viewRect.y) * _yFactor
+
+        onChildrenChanged: Qt.callLater(function () {
+            // Anchor children to container content item
+            // TODO: Accessing children within onChildrenChanged crashes in Windows-Release. Why?
+            for (var i=0; i < children.length; ++i) {
+                children[i].anchors.fill = contentItem;
+            }
+        });
     }
 }
