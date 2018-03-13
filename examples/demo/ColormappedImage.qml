@@ -32,7 +32,7 @@ Page {
         anchors.left: parent.left
         anchors.bottom: parent.bottom
         anchors.margins: Qt.application.font.pixelSize
-        Text {
+        Label {
             readonly property string value1: rangeSlider.first.value.toFixed(2)
             readonly property string value2: rangeSlider.second.value.toFixed(2)
             text: "Value range " + value1 + " to " + value2
@@ -68,7 +68,7 @@ Page {
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
         anchors.margins: Qt.application.font.pixelSize
-        Text {
+        Label {
             Layout.alignment: Qt.AlignHCenter
             text: "Colormaps"
         }
