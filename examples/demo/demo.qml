@@ -28,6 +28,7 @@ ApplicationWindow {
                 id: pageSelector
                 textRole: "name"
                 model: demoPages
+                currentIndex: Qt.application.arguments.length > 1 ? Qt.application.arguments[1] : 0
                 implicitWidth: 10 * Qt.application.font.pixelSize
             }
         }
