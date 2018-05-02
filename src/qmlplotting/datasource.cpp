@@ -1,4 +1,6 @@
 #include <QThread>
+#include <QMutex>
+#include <QMutexLocker>
 #include <QOpenGLContext>
 #include "datasource.h"
 #include "qsgdatatexture.h"
@@ -17,7 +19,8 @@ public:
     ~DataTexture() override = default;
 
     bool updateTexture() override {
-        if (m_source->m_new_data) {
+        QMutexLocker lock(&m_source_access);
+        if (m_source && m_source->m_new_data) {
             // copy/convert data to float texture buffer
             float* data = allocateData(m_source->m_dims, m_source->m_num_dims, 1);
             int num_elements = 1;
@@ -33,7 +36,7 @@ public:
         return false;
     }
 
-private:
+    QMutex m_source_access;
     const DataSource* m_source = nullptr;
 };
 
@@ -74,6 +77,9 @@ DataSource::DataSource(QQuickItem *parent)
 DataSource::~DataSource()
 {
     if (m_provider != nullptr) {
+        // Synchronously disconnect from texture (find a better way to handle this)
+        QMutexLocker(&m_provider->m_datatexture->m_source_access);
+        m_provider->m_datatexture->m_source = nullptr;
         m_provider->deleteLater();
     }
 }
