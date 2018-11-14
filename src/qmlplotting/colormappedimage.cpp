@@ -30,11 +30,11 @@ class QSQColormapShader : public QSGMaterialShader
 {
 public:
     const char *vertexShader() const override {
-        return GLSL(130,
-            in highp vec4 vertex;
-            in highp vec2 texcoord;
+        return GLSL(100,
+            attribute highp vec4 vertex;
+            attribute highp vec2 texcoord;
             uniform highp mat4 matrix;
-            out highp vec2 coord;
+            varying highp vec2 coord;
 
             void main() {
                 coord = texcoord;
@@ -44,25 +44,24 @@ public:
     }
 
     const char *fragmentShader() const override {
-        return GLSL(130,
+        return R"(
             uniform sampler2D cmap;
             uniform sampler2D image;
             uniform highp float amplitude;
             uniform highp float offset;
             uniform lowp float opacity;
-            in highp vec2 coord;
-            out vec4 fragColor;
+            varying highp vec2 coord;
 
             void main() {
                 bool inside = coord.s > 0. && coord.s < 1. && coord.t > 0. && coord.t < 1.;
-                highp float val = texture(image, coord.st).r;
+                highp float val = texture2D(image, coord.st).r;
                 val = amplitude * (val + offset);
-                vec4 color = texture(cmap, vec2(val, 0.));
+                lowp vec4 color = texture2D(cmap, vec2(val, 0.));
                 lowp float o = opacity * color.a * float(inside);
-                fragColor.rgb = color.rgb * o;
-                fragColor.a = o;
+                gl_FragColor.rgb = color.rgb * o;
+                gl_FragColor.a = o;
             }
-        );
+)";
     }
 
     char const *const *attributeNames() const override
@@ -116,7 +115,7 @@ public:
         // unbind all textures
         QOpenGLFunctions* functions = QOpenGLContext::currentContext()->functions();
         functions->glActiveTexture(GL_TEXTURE1);
-        functions->glBindTexture(GL_TEXTURE_1D, 0);
+        functions->glBindTexture(GL_TEXTURE_2D, 0);
         functions->glActiveTexture(GL_TEXTURE0);
         functions->glBindTexture(GL_TEXTURE_2D, 0);
     }

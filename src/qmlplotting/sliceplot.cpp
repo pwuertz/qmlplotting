@@ -8,8 +8,8 @@
 class SlicePlotMaterial : public QSGMaterial
 {
 public:
-    SlicePlotMaterial(bool filled) : QSGMaterial(), m_filled(filled) {}
-    virtual ~SlicePlotMaterial() {}
+    SlicePlotMaterial(bool filled) : m_filled(filled) {}
+    ~SlicePlotMaterial() override = default;
     QSGTexture* m_texture_data;
     double m_width;
     double m_height;
@@ -24,9 +24,7 @@ public:
 class SliceLinePlotMaterial : public SlicePlotMaterial
 {
 public:
-    SliceLinePlotMaterial() : SlicePlotMaterial(false)
-    {
-    }
+    SliceLinePlotMaterial() : SlicePlotMaterial(false) {}
     ~SliceLinePlotMaterial() override = default;
 
     QSGMaterialType *type() const override {
@@ -127,8 +125,8 @@ public:
     ~SliceLinePlotShader() override = default;
 
     const char *vertexShader() const override {
-        return GLSL(130,
-            in highp vec2 vertex;
+        return GLSL(100,
+            attribute highp vec2 vertex;
             uniform sampler2D data;
             uniform highp float width;
             uniform highp float height;
@@ -140,7 +138,7 @@ public:
 
             void main() {
                 highp vec2 pos = (1.-vertex.x)*p1 + vertex.x*p2;
-                highp float val = texture(data, pos).r;
+                highp float val = texture2D(data, pos).r;
                 highp float yval = amplitude * (val+offset);
                 gl_Position = matrix * vec4(width * vertex.x, height * (1.-yval), 0., 1.);
             }
@@ -148,18 +146,17 @@ public:
     }
 
     const char *fragmentShader() const override {
-        return GLSL(130,
+        return R"(
             uniform sampler2D data;
             uniform lowp float opacity;
             uniform mediump vec4 color;
-            out vec4 fragColor;
 
             void main() {
                 lowp float o = opacity * color.a;
-                fragColor.rgb = color.rgb * o;
-                fragColor.a = o;
+                gl_FragColor.rgb = color.rgb * o;
+                gl_FragColor.a = o;
             }
-        );
+        )";
     }
 };
 
@@ -170,16 +167,16 @@ public:
     ~SliceFillPlotShader() override = default;
 
     const char *vertexShader() const override {
-        return GLSL(130,
-            in highp vec2 vertex;
+        return GLSL(100,
+            attribute highp vec2 vertex;
             uniform sampler2D data;
             uniform highp float width;
             uniform highp float height;
             uniform highp vec2 p1;
             uniform highp vec2 p2;
             uniform highp mat4 matrix;
-            out highp vec2 pos;
-            out highp vec2 coord;
+            varying highp vec2 pos;
+            varying highp vec2 coord;
 
             void main() {
                 coord = (1.-vertex.x)*p1 + vertex.x*p2;
@@ -190,28 +187,27 @@ public:
     }
 
     const char *fragmentShader() const override {
-        return GLSL(130,
+        return R"(
             uniform sampler2D data;
             uniform lowp float opacity;
             uniform highp float amplitude;
             uniform highp float offset;
             uniform mediump vec4 color;
-            in highp vec2 pos;
-            in highp vec2 coord;
-            out vec4 fragColor;
+            varying highp vec2 pos;
+            varying highp vec2 coord;
 
             void main() {
                 highp float pos_y = pos.y - amplitude*offset;
-                highp float y_val = amplitude * texture(data, coord).r;
+                highp float y_val = amplitude * texture2D(data, coord).r;
                 highp float dist_above_curve = sign(y_val) * (pos_y-y_val);
                 float below_curve = float(dist_above_curve < 0.);
                 float above_zero = float(sign(y_val) * pos_y >= 0.);
                 float fill = below_curve * above_zero;
                 lowp float o = opacity * color.a * fill;
-                fragColor.rgb = color.rgb * o;
-                fragColor.a = o;
+                gl_FragColor.rgb = color.rgb * o;
+                gl_FragColor.a = o;
             }
-        );
+        )";
     }
 };
 

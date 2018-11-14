@@ -40,8 +40,8 @@ class XYMarkerMaterialShader : public QSGMaterialShader
 {
 public:
     const char *vertexShader() const override {
-        return GLSL(130,
-            in highp vec4 vertex;
+        return GLSL(100,
+            attribute highp vec4 vertex;
             uniform highp mat4 matrix;
             uniform highp vec2 size;
             uniform highp vec2 scale;
@@ -57,18 +57,17 @@ public:
     }
 
     const char *fragmentShader() const override {
-        return GLSL(130,
+        return R"(
             uniform lowp float opacity;
             uniform lowp vec4 mcolor;
             uniform sampler2D mimage;
-            out vec4 fragColor;
 
             void main() {
-                lowp vec4 color = mcolor * texture(mimage, gl_PointCoord.xy);
+                lowp vec4 color = mcolor * texture2D(mimage, gl_PointCoord.xy);
                 lowp float o = opacity * color.a;
-                fragColor = vec4(color.rgb * o, o);
+                gl_FragColor = vec4(color.rgb * o, o);
             }
-        );
+        )";
     }
 
     char const *const *attributeNames() const override {
@@ -92,8 +91,10 @@ public:
 
     void activate() override {
         QOpenGLFunctions *glFuncs = QOpenGLContext::currentContext()->functions();
+        #ifndef QT_OPENGL_ES_2
         glFuncs->glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
         glFuncs->glEnable(GL_POINT_SPRITE); // TODO: this is deprecated, but appears to be required on NVidia systems
+        #endif
     }
 
     void updateState(const RenderState& state, QSGMaterial* newMaterial, QSGMaterial*) override {
@@ -152,8 +153,8 @@ class XYLineMaterialShader : public QSGMaterialShader
 {
 public:
     const char* vertexShader() const override {
-        return GLSL(130,
-            in highp vec4 vertex;
+        return GLSL(100,
+            attribute highp vec4 vertex;
             uniform highp mat4 matrix;
             uniform highp vec2 size;
             uniform highp vec2 scale;
@@ -167,19 +168,17 @@ public:
     }
 
     const char* fragmentShader() const override {
-        return GLSL(130,
+        return R"(
             uniform lowp vec4 color;
             uniform lowp float opacity;
-            out vec4 fragColor;
 
             void main() {
-                fragColor = vec4(color.rgb*color.a, color.a) * opacity;
+                gl_FragColor = vec4(color.rgb*color.a, color.a) * opacity;
             }
-        );
+        )";
     }
 
-    char const *const *attributeNames() const override
-    {
+    char const *const *attributeNames() const override {
         static char const *const names[] = {"vertex", nullptr};
         return names;
     }
@@ -245,8 +244,8 @@ class XYFillMaterialShader : public QSGMaterialShader
 {
 public:
     const char* vertexShader() const override {
-        return GLSL(130,
-            in highp vec4 vertex;
+        return GLSL(100,
+            attribute highp vec4 vertex;
             uniform highp mat4 matrix;
             uniform highp vec2 size;
             uniform highp vec2 scale;
@@ -260,15 +259,14 @@ public:
     }
 
     const char* fragmentShader() const override {
-        return GLSL(130,
+        return R"(
             uniform lowp vec4 color;
             uniform lowp float opacity;
-            out vec4 fragColor;
 
             void main() {
-                fragColor = vec4(color.rgb*color.a, color.a) * opacity;
+                gl_FragColor = vec4(color.rgb*color.a, color.a) * opacity;
             }
-        );
+        )";
     }
 
     char const *const *attributeNames() const override {

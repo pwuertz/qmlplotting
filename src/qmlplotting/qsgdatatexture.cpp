@@ -1,35 +1,57 @@
 #include "qsgdatatexture.h"
 #include <QOpenGLContext>
+#include <QOpenGLExtraFunctions>
 #include <cstdint>
 #include <QtGlobal>
 
-template <typename T>
-struct GlMap {
-    static constexpr GLint internalFormat(int nColors) {
-        return internalFormats[nColors];
-    }
-    static constexpr GLenum dataFormat(int nColors) {
-        constexpr GLenum dataFormats[5] = {0, GL_RED, GL_RG, GL_RGB, GL_BGRA};
-        return dataFormats[nColors];
-    }
-    static const GLint internalFormats[5];
-    static const GLenum dataType;
+namespace {
+
+struct GlTypemap {
+    const GLint internalFormats[5];
+    const GLenum dataType;
 };
 
-template<> const GLint GlMap<float>::internalFormats[5] = {0, GL_R32F, GL_RG32F, GL_RGB32F, GL_RGBA32F};
-template<> const GLenum GlMap<float>::dataType = GL_FLOAT;
+template <typename T>
+struct GlMap
+{
+    static constexpr GLint internalFormat(const int nColors) {
+        return typemap.internalFormats[nColors];
+    }
+    static constexpr GLenum dataFormat(const int nColors) {
+        #ifndef QT_OPENGL_ES_2
+        constexpr GLenum dataFormats[5] = {0, GL_RED, GL_RG, GL_RGB, GL_BGRA};
+        #else
+        constexpr GLenum dataFormats[5] = {0, GL_LUMINANCE, 0, GL_RGB, GL_RGBA};
+        #endif
+        return dataFormats[nColors];
+    }
+    static constexpr GLenum dataType() { return typemap.dataType; }
+    static const GlTypemap typemap;
+};
 
-template<> const GLint GlMap<uint8_t>::internalFormats[5] = {0, GL_R8, GL_RG8, GL_RGB8, GL_RGBA8};
-template<> const GLenum GlMap<uint8_t>::dataType = GL_UNSIGNED_BYTE;
+#ifndef QT_OPENGL_ES_2
+template<> const GlTypemap GlMap<float>::typemap = {
+    {0, GL_R32F, GL_RG32F, GL_RGB32F, GL_RGBA32F}, GL_FLOAT
+};
+template<> const GlTypemap GlMap<uint8_t>::typemap = {
+    {0, GL_R8, GL_RG8, GL_RGB8, GL_RGBA8}, GL_UNSIGNED_BYTE
+};
+#else
+template<> const GlTypemap GlMap<float>::typemap = {
+    {0, GL_LUMINANCE, 0, GL_RGB, GL_RGBA}, GL_FLOAT
+};
+template<> const GlTypemap GlMap<uint8_t>::typemap = {
+    {0, GL_LUMINANCE, 0, GL_RGB, GL_RGBA}, GL_UNSIGNED_BYTE
+};
+#endif
 
+}
 
 template<typename T>
 QSGDataTexture<T>::QSGDataTexture() :
-    QSGDynamicTexture(), QOpenGLFunctions_2_0()
+    QSGDynamicTexture(), QOpenGLFunctions()
 {
-    if (!initializeOpenGLFunctions()) {
-        qFatal("QSGDataTexture: OpenGL 2.0 required");
-    }
+    initializeOpenGLFunctions();
 }
 
 template<typename T>
@@ -78,10 +100,7 @@ void QSGDataTexture<T>::bind() {
 
     switch (m_num_dims) {
     case 1:
-        glBindTexture(GL_TEXTURE_1D, m_id_texture);
-        glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, filter);
-        glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, filter);
-        glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        // Deprecated
         break;
     case 2:
         glBindTexture(GL_TEXTURE_2D, m_id_texture);
@@ -91,12 +110,14 @@ void QSGDataTexture<T>::bind() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         break;
     case 3:
+        #ifndef QT_OPENGL_ES_2
         glBindTexture(GL_TEXTURE_3D, m_id_texture);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, filter);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, filter);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        #endif
         break;
     default:
         break;
@@ -107,19 +128,24 @@ void QSGDataTexture<T>::bind() {
         // determine color format
         const GLint internal_format = GlMap<T>::internalFormat(m_num_components);
         const GLenum format = GlMap<T>::dataFormat(m_num_components);
-        const GLenum type = GlMap<T>::dataType;
+        const GLenum type = GlMap<T>::dataType();
 
         // upload data as 1D or 2D texture
         switch (m_num_dims) {
         case 1:
-            glTexImage1D(GL_TEXTURE_1D, 0, internal_format, m_dims[0], 0, format, type, m_buffer.data());
+            // Deprecated
             break;
         case 2:
             glTexImage2D(GL_TEXTURE_2D, 0, internal_format, m_dims[0], m_dims[1], 0, format, type, m_buffer.data());
             break;
         case 3:
-            glTexImage3D(GL_TEXTURE_3D, 0, internal_format, m_dims[0], m_dims[1], m_dims[2], 0, format, type, m_buffer.data());
+        {
+            #ifndef QT_OPENGL_ES_2
+            QOpenGLExtraFunctions* f = QOpenGLContext::currentContext()->extraFunctions();
+            f->glTexImage3D(GL_TEXTURE_3D, 0, internal_format, m_dims[0], m_dims[1], m_dims[2], 0, format, type, m_buffer.data());
+            #endif
             break;
+        }
         default:
             return;
         }
@@ -152,12 +178,6 @@ T *QSGDataTexture<T>::allocateData(const int *dims, int num_dims, int num_compon
     m_num_dims = num_dims;
     m_num_components = num_components;
     return reinterpret_cast<T*>(m_buffer.data());
-}
-
-template<typename T>
-T* QSGDataTexture<T>::allocateData1D(int size, int num_components)
-{
-    return reinterpret_cast<T*>(allocateData(&size, 1, num_components));
 }
 
 template<typename T>
