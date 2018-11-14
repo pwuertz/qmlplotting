@@ -2,10 +2,13 @@
     <qresource prefix="/">
         <file>demo.qml</file>
         <file>qtquickcontrols2.conf</file>
+        <file>PolygonItem.qml</file>
+        <file>PolygonTool.qml</file>
     </qresource>
     <qresource prefix="/pages">
         <file>ColormappedImage.qml</file>
         <file>XYPlot.qml</file>
         <file>Containers.qml</file>
+        <file>PolygonDrawing.qml</file>
     </qresource>
 </RCC>

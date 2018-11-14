@@ -13,6 +13,7 @@ ApplicationWindow {
     // Demonstration pages
     ListModel {
         id: demoPages
+        ListElement { name: "Polygons"; source: "qrc:/pages/PolygonDrawing.qml" }
         ListElement { name: "2D Data"; source: "qrc:/pages/ColormappedImage.qml" }
         ListElement { name: "XY Plot"; source: "qrc:/pages/XYPlot.qml"}
         ListElement { name: "Containers"; source: "qrc:/pages/Containers.qml"}
