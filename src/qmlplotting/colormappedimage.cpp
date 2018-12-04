@@ -299,7 +299,7 @@ QSGNode* ColormappedImage::updatePaintNode(QSGNode* n, QQuickItem::UpdatePaintNo
     // Check for geometry changes
     if (m_new_geometry) {
         // Map function for view/extent to texture coordinates (single dimension)
-        constexpr auto toTexCoords = [](const float v1, const float v_delta, const float e1, const float e2) -> std::tuple<float, float> {
+        const auto toTexCoords = [](const float v1, const float v_delta, const float e1, const float e2) -> std::tuple<float, float> {
             const float v_center = v1 + .5f * v_delta;
             const float e_center = .5f * (e1 + e2);
             const float e_delta = e2 - e1;
