@@ -30,5 +30,6 @@ LoadableModule {
         fileTagsFilter: ["dynamiclibrary", "ressources"]
         qbs.install: true
         qbs.installDir: "QmlPlotting"
+        qbs.installPrefix: ""
     }
 }
