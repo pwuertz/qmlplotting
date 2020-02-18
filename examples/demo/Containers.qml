@@ -39,6 +39,7 @@ Page {
                 // Container with resize constraint
                 QmlPlotting.MovableContainer {
                     itemRect: Qt.rect(2, 0, 1, 1)
+                    maxItemRect: Qt.rect(-3, -2, 6, 5)
                     onItemRectChanged: plotLabel.showRect(itemRect)
                     aspectFixed: true
                     Rectangle {
