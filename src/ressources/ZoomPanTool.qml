@@ -1,5 +1,4 @@
 import QtQuick 2.7
-import QtQuick.Controls 1.1
 import QmlPlotting 2.0 as QmlPlotting
 
 Item {
