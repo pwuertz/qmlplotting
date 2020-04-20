@@ -16,7 +16,7 @@ Page {
         plotGroup: QmlPlotting.PlotGroup {
             clip: true
             viewRect: Qt.rect(-3, -2, 6, 5)
-            aspectAuto: false
+            viewMode: QmlPlotting.PlotGroup.PreserveAspectFit
             plotItems: [
                 QmlPlotting.ZoomPanTool {},
                 // Fixed container

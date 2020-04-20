@@ -34,77 +34,93 @@ QQmlListProperty<QQuickItem> PlotGroup::plotItems()
     return {this, this, append, count, at, clear};
 }
 
-void PlotGroup::setAspectAuto(bool aspectAuto)
+void PlotGroup::setViewMode(const ViewMode viewMode)
 {
-    if (m_aspectAuto != aspectAuto) {
-        m_aspectAuto = aspectAuto;
-        if (!m_aspectAuto) {
-            setViewRect(m_viewRect);
-        }
-        emit aspectAutoChanged(aspectAuto);
-    }
+    if (std::exchange(m_viewMode, viewMode) == viewMode) { return; }
+    updateViewRects();
+    emit viewModeChanged(viewMode);
 }
 
 void PlotGroup::setAspectRatio(double aspectRatio)
 {
-    if (m_aspectRatio != aspectRatio) {
-        m_aspectRatio = std::max(aspectRatio, 0.);
-        if (!m_aspectAuto) {
-            setViewRect(m_viewRect);
-        }
-        emit aspectRatioChanged(aspectRatio);
-    }
+    aspectRatio = std::max(aspectRatio, 0.);
+    if (std::exchange(m_aspectRatio, aspectRatio) == aspectRatio) { return; }
+    if (m_viewMode != ViewMode::AutoAspect) { updateViewRects(); }
+    emit aspectRatioChanged(aspectRatio);
 }
 
 void PlotGroup::setViewRect(const QRectF& viewRect)
 {
-    // Enforce view correction if aspect is fixed (TODO: just check aspect before full calculation?)
-    const QRectF newViewRect = m_aspectAuto ? viewRect : correctAspectRatio(viewRect);
-    if (m_viewRect != newViewRect) {
-        m_viewRect = newViewRect;
-        // Forward viewRect change to plot items
-        for (auto& item: m_plotItems) {
-            item->setProperty("viewRect", newViewRect);
-        }
-        emit viewRectChanged(newViewRect);
-    }
+    // Set preferred view rect
+    if (std::exchange(m_preferredViewRect, viewRect) == viewRect) { return; }
+    // Trigger internal view rect update
+    updateViewRects();
 }
 
-void PlotGroup::setLogY(bool logY)
+void PlotGroup::updateViewRects()
 {
-    if (m_logY != logY) {
-        m_logY = logY;
-        // Forward logY change to plot items
-        for (auto& item: m_plotItems) {
-            item->setProperty("logY", logY);
-        }
-        emit logYChanged(logY);
+    // Set actual view rect from preferred, possibly adjusted view rect
+    const QRectF adjustedViewRect = adjustViewRect(m_preferredViewRect);
+    if (std::exchange(m_viewRect, adjustedViewRect) == adjustedViewRect) { return; }
+    // Update all plot items
+    for (auto& item: m_plotItems) {
+        item->setProperty("viewRect", m_viewRect);
     }
+    emit viewRectChanged(m_viewRect);
 }
 
-void PlotGroup::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
+void PlotGroup::setLogY(const bool logY)
+{
+    if (std::exchange(m_logY, logY) == logY) { return; }
+    // Forward logY change to plot items
+    for (auto& item: m_plotItems) {
+        item->setProperty("logY", logY);
+    }
+    emit logYChanged(logY);
+}
+
+void PlotGroup::geometryChanged(const QRectF& newGeometry, const QRectF& oldGeometry)
 {
     QQuickItem::geometryChanged(newGeometry, oldGeometry);
     // Resize plot items to new item size
     for (auto& item: m_plotItems) {
         item->setSize({width(), height()});
     }
-    // If aspect ratio is fixed, correct viewRect after resize
-    if (!m_aspectAuto) {
-        setViewRect(m_viewRect);
+    // Update view rects if size change triggers aspect adjustment
+    if (m_viewMode != ViewMode::AutoAspect) {
+        updateViewRects();
     }
 }
 
-QRectF PlotGroup::correctAspectRatio(const QRectF &viewRect)
+QRectF PlotGroup::adjustViewRect(const QRectF& viewRect) const
 {
-    // Assert item size is valid before calculating new viewRect
-    if (!(width() > 0 && height() > 0)) {
+    // TODO: Support aspect != 1
+    // Aspect correction requires valid item size
+    if (!(width() > 0 && height() > 0)) { return viewRect; }
+    // Return unchanged rect in auto mode
+    if (m_viewMode == ViewMode::AutoAspect) { return viewRect; }
+
+    const double sourceAspect = viewRect.width() / viewRect.height();
+    const double targetAspect = width() / height();
+
+    const auto fitX = [&]() -> QRectF {
+        const double targetHeight = viewRect.width() / targetAspect;
+        const double delta = targetHeight - viewRect.height();
+        return { viewRect.x(), viewRect.y() - 0.5 * delta, viewRect.width(), targetHeight };
+    };
+
+    const auto fitY = [&]() -> QRectF {
+        const double targetWidth = viewRect.height() * targetAspect;
+        const double delta = targetWidth - viewRect.width();
+        return { viewRect.x() - 0.5 * delta, viewRect.y(), targetWidth, viewRect.height() };
+    };
+
+    switch (m_viewMode) {
+    case ViewMode::PreserveAspectFit:
+        return (targetAspect >= sourceAspect) ? fitY() : fitX();
+    case ViewMode::PreserveAspectCrop:
+        return (targetAspect >= sourceAspect) ? fitX() : fitY();
+    default:
         return viewRect;
     }
-    // TODO: Use an enum like Image.fillMode to define view behaviour
-    // For now fix y-axis and adjust width according to target aspect ratio.
-    const double viewAspect = m_aspectRatio * width() / height();
-    const double targetWidth = viewRect.height() * viewAspect;
-    const double widthDelta = targetWidth - viewRect.width();
-    return {viewRect.x() - 0.5 * widthDelta, viewRect.y(), targetWidth, viewRect.height()};
 }
