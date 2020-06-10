@@ -57,7 +57,7 @@ public:
     }
 
     const char *fragmentShader() const override {
-        return R"(
+        return GLSL(120,
             uniform lowp float opacity;
             uniform lowp vec4 mcolor;
             uniform sampler2D mimage;
@@ -67,7 +67,7 @@ public:
                 lowp float o = opacity * color.a;
                 gl_FragColor = vec4(color.rgb * o, o);
             }
-        )";
+        );
     }
 
     char const *const *attributeNames() const override {
