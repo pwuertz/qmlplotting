@@ -29,6 +29,9 @@ public:
     int dataHeight() const {return m_dims[1];}
     int dataDepth() const {return m_dims[2];}
 
+public:
+    Q_INVOKABLE void setPointsXY(const QVariantList& points);
+
 public slots:
     bool copyFloat64Array1D(const QByteArray& data, int size);
     bool copyFloat64Array2D(const QByteArray& data, int width, int height);

@@ -103,6 +103,17 @@ QSGTextureProvider* DataSource::textureProvider() const
     return m_provider;
 }
 
+void DataSource::setPointsXY(const QVariantList& points)
+{
+    auto* p_dst = static_cast<double*>(allocateData1D(points.size() * 2));
+    for (const auto& variant : points) {
+        const auto p = variant.toPointF();
+        *(p_dst++) = p.x();
+        *(p_dst++) = p.y();
+    }
+    commitData();
+}
+
 bool DataSource::copyFloat64Array1D(const QByteArray& data, int size)
 {
     if (size * static_cast<int>(sizeof(double)) > data.size()) {
