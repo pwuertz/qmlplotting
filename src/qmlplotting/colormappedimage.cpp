@@ -222,6 +222,9 @@ static void updateColormapTexture(QSGDataTexture<float>& texture, const QString&
     } else if (colormap == QStringLiteral("jet")) {
         data = const_cast<double*>(cmap_jet);
         numpoints = sizeof(cmap_jet) / (3*sizeof(double));
+    } else if (colormap == QStringLiteral("turbo")) {
+        data = const_cast<double*>(cmap_turbo);
+        numpoints = sizeof(cmap_turbo) / (3*sizeof(double));
     } else if (colormap == QStringLiteral("hot")) {
         data = const_cast<double*>(cmap_hot);
         numpoints = sizeof(cmap_hot) / (3*sizeof(double));

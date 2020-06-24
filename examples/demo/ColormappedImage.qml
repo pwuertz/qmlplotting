@@ -53,8 +53,9 @@ Page {
         ListElement { name: "viridis" }
         ListElement { name: "bwr" }
         ListElement { name: "ferrugineus" }
-        ListElement { name: "wjet" }
+        ListElement { name: "turbo" }
         ListElement { name: "jet" }
+        ListElement { name: "wjet" }
         ListElement { name: "hot" }
         ListElement { name: "gray" }
     }
