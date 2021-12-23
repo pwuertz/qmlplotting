@@ -1,4 +1,6 @@
 # QmlPlotting
+> **NOTE:** This project is end-of-life. A follow-up based on Qt6 is being developed at [QtQuickPlotScene](https://github.com/pwuertz/QtQuickPlotScene).
+
 QmlPlotting is a collection of QtQuick items for scientific data visualization bundled as QtQuick plugin.
 
 ![XY Plot](doc/demo-plotxy.png)
